@@ -9,7 +9,7 @@
   const isMac = navigator.platform.toLowerCase().includes('mac');
   const TOOL_KEYS = {
     v: 'select', p: 'pen', l: 'line', a: 'arrow', r: 'rect', o: 'ellipse',
-    h: 'highlight', t: 'text', n: 'step', m: 'censor',
+    h: 'highlight', t: 'text', n: 'step', m: 'censor', c: 'region',
   };
 
   // ---------- paste / drop / file picker ----------
@@ -76,7 +76,8 @@
 
     if (mod && key === 'z') { e.preventDefault(); App.undo(); }
     else if (mod && key === 's') { e.preventDefault(); App.savePng(); }
-    else if (mod && key === 'c') { e.preventDefault(); App.copyImage(); }
+    else if (mod && key === 'c') { e.preventDefault(); if (S.region) App.copyRegion(); else App.copyImage(); }
+    else if (e.key === 'Enter' && S.region) { e.preventDefault(); App.pasteRegion(); }
     else if (mod && key === '0') { e.preventDefault(); App.fitView(); App.render(); }
     else if (mod && (key === '=' || key === '+')) { e.preventDefault(); App.zoomCenter(1.2); }
     else if (mod && key === '-') { e.preventDefault(); App.zoomCenter(1 / 1.2); }
@@ -106,6 +107,8 @@
   $('btn-undo').addEventListener('click', () => App.undo());
   $('btn-delete').addEventListener('click', () => App.deleteSelected());
   $('btn-clear').addEventListener('click', () => App.clearAll());
+  $('btn-region-paste').addEventListener('click', () => App.pasteRegion());
+  $('btn-region-copy').addEventListener('click', () => App.copyRegion());
   $('btn-copy').addEventListener('click', () => App.copyImage());
   $('btn-save').addEventListener('click', () => App.savePng());
 })();

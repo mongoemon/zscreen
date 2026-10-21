@@ -66,6 +66,10 @@
       App.placeStep(w);
       return;
     }
+    if (S.tool === 'region') {
+      if (App.beginRegion(w)) S.drag = { kind: 'region', sx, sy, start: w };
+      return;
+    }
     S.draft = App.makeDraft(S.tool, w);
     S.drag = { kind: 'draw', sx, sy, start: w };
   }
@@ -143,6 +147,9 @@
       case 'draw':
         App.updateDraft(w, e.shiftKey);
         break;
+      case 'region':
+        App.updateRegion(drag.start, w);
+        break;
       default:
         break;
     }
@@ -164,6 +171,8 @@
     S.guides = [];
     if (finished.kind === 'draw') {
       App.commitDraft();
+    } else if (finished.kind === 'region') {
+      App.finishRegion();
     } else if (finished.kind !== 'pan' && !finished.moved) {
       dropLastHistory(); // a plain click must not leave an empty undo step behind
     } else if (finished.kind === 'ann-move') {

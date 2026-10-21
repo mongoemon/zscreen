@@ -9,6 +9,7 @@
   const TEXT_PAD = 6;
   const PIXEL_BLOCK = 12; // mosaic cell size, world px
   const BLUR_RADIUS = 10; // world px
+  const STROKE_RATIO = 0.25; // text outline width relative to font size (half shows outside the glyphs)
 
   const scratch = document.createElement('canvas'); // reused for measuring and censor sampling
   const scratchCtx = scratch.getContext('2d');
@@ -92,6 +93,20 @@
     drawArrowLabel(ctx, a);
   }
 
+  /** Fill text, first outlining it in the contrasting colour when `stroke` is on so it stays legible on any image. */
+  function fillTextLine(ctx, str, x, y, size, color, stroke) {
+    if (stroke) {
+      ctx.save();
+      ctx.lineJoin = 'round';
+      ctx.lineWidth = Math.max(2, size * STROKE_RATIO);
+      ctx.strokeStyle = root.Scene.contrastColor(color);
+      ctx.strokeText(str, x, y);
+      ctx.restore();
+    }
+    ctx.fillStyle = color;
+    ctx.fillText(str, x, y);
+  }
+
   /** Label behind the arrow's tail; lines are centred on the label box. */
   function drawArrowLabel(ctx, a) {
     const rect = root.Scene.arrowLabelRect(a);
@@ -100,9 +115,8 @@
     ctx.font = fontOf(size);
     ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
-    ctx.fillStyle = a.color;
     a.label.split('\n').forEach((line, i) => {
-      ctx.fillText(line, rect.x + rect.w / 2, rect.y + i * size * LINE_HEIGHT);
+      fillTextLine(ctx, line, rect.x + rect.w / 2, rect.y + i * size * LINE_HEIGHT, size, a.color, a.stroke);
     });
   }
 
@@ -117,8 +131,11 @@
       ctx.roundRect(a.x, a.y, a.w, a.h, 6);
       ctx.fill();
     }
-    ctx.fillStyle = a.bg ? root.Scene.contrastColor(a.color) : a.color;
-    lines.forEach((line, i) => ctx.fillText(line, a.x + pad, a.y + pad + i * a.size * LINE_HEIGHT));
+    const color = a.bg ? root.Scene.contrastColor(a.color) : a.color;
+    const stroke = a.stroke && !a.bg; // a filled label already contrasts with its text
+    lines.forEach((line, i) => {
+      fillTextLine(ctx, line, a.x + pad, a.y + pad + i * a.size * LINE_HEIGHT, a.size, color, stroke);
+    });
   }
 
   function drawStep(ctx, a) {

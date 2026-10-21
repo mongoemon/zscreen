@@ -16,6 +16,17 @@ const pen = (o = {}) => ({ id: 3, ownerId: null, type: 'pen', points: [{ x: 0, y
 const text = (o = {}) => ({ id: 4, ownerId: null, type: 'text', x: 5, y: 5, w: 80, h: 30, text: 'hi', size: 20, color: '#f00', bg: false, ...o });
 const step = (o = {}) => ({ id: 5, ownerId: null, type: 'step', x: 100, y: 100, n: 1, size: 14, color: '#f00', ...o });
 
+describe('intersectRect', () => {
+  const box = { x: 10, y: 10, w: 100, h: 50 };
+  test('clips a rect to the part that overlaps', () => {
+    assert.deepEqual(S.intersectRect({ x: 0, y: 30, w: 40, h: 100 }, box), { x: 10, y: 30, w: 30, h: 30 });
+  });
+  test('returns null when the rects only touch or are apart', () => {
+    assert.equal(S.intersectRect({ x: 110, y: 10, w: 20, h: 20 }, box), null);
+    assert.equal(S.intersectRect({ x: 500, y: 500, w: 5, h: 5 }, box), null);
+  });
+});
+
 describe('normalizeRect', () => {
   test('orders corners regardless of drag direction', () => {
     assert.deepEqual(S.normalizeRect(50, 60, 10, 20), { x: 10, y: 20, w: 40, h: 40 });

@@ -16,7 +16,8 @@
       width: S.style.width,
     };
     if (type === 'pen') return { ...base, points: [w] };
-    if (type === 'line' || type === 'arrow') return { ...base, x1: w.x, y1: w.y, x2: w.x, y2: w.y };
+    if (type === 'arrow') return { ...base, x1: w.x, y1: w.y, x2: w.x, y2: w.y, stroke: S.style.textStroke };
+    if (type === 'line') return { ...base, x1: w.x, y1: w.y, x2: w.x, y2: w.y };
     if (type === 'censor') return { ...base, x: w.x, y: w.y, w: 0, h: 0, mode: S.style.censorMode };
     return { ...base, x: w.x, y: w.y, w: 0, h: 0 }; // rect, ellipse, highlight
   }
@@ -85,6 +86,7 @@
       size: S.style.fontSize,
       color: S.style.color,
       bg: S.style.textBg,
+      stroke: S.style.textStroke,
     });
   }
 

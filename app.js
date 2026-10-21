@@ -34,7 +34,7 @@ window.App = (() => {
     btnDelete: $('btn-delete'),
     btnUndo: $('btn-undo'),
     ctl: {
-      color: $('ctl-color'), width: $('ctl-width'), font: $('ctl-font'), bg: $('ctl-bg'), censor: $('ctl-censor'),
+      color: $('ctl-color'), width: $('ctl-width'), font: $('ctl-font'), bg: $('ctl-bg'), stroke: $('ctl-stroke'), censor: $('ctl-censor'),
     },
   };
 
@@ -50,9 +50,10 @@ window.App = (() => {
     selectedId: null, // selected image
     selectedAnnId: null, // selected annotation
     draft: null, // annotation being drawn right now
+    region: null, // {itemId, x, y, w, h} box picked with the region tool (world units, inside one image)
     editing: null, // text annotation being edited in the textarea
     tool: 'select',
-    style: { color: C.SWATCHES[0], width: 4, fontSize: 28, censorMode: 'pixel', textBg: false },
+    style: { color: C.SWATCHES[0], width: 4, fontSize: 28, censorMode: 'pixel', textBg: false, textStroke: true },
     view: { x: C.VIEW_PAD, y: C.VIEW_PAD, scale: 1 },
     history: [],
     nextId: 1,

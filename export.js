@@ -65,5 +65,5 @@
     }
   }
 
-  Object.assign(App, { composeCanvas, savePng, copyImage });
+  Object.assign(App, { composeCanvas, toPngBlob, savePng, copyImage });
 })();

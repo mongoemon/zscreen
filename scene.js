@@ -210,6 +210,15 @@
     return { x: Math.min(x1, x2), y: Math.min(y1, y2), w: Math.abs(x2 - x1), h: Math.abs(y2 - y1) };
   }
 
+  /** Overlap of two rects, or null when they do not share any area. */
+  function intersectRect(a, b) {
+    const x1 = Math.max(a.x, b.x);
+    const y1 = Math.max(a.y, b.y);
+    const x2 = Math.min(a.x + a.w, b.x + b.w);
+    const y2 = Math.min(a.y + a.h, b.y + b.h);
+    return x2 > x1 && y2 > y1 ? { x: x1, y: y1, w: x2 - x1, h: y2 - y1 } : null;
+  }
+
   /** Apply a point transform to every coordinate of an annotation. */
   function mapAnnotation(a, f) {
     if (a.type === 'pen') return { ...a, points: a.points.map((p) => f(p.x, p.y)) };
@@ -390,6 +399,7 @@
 
   return {
     normalizeRect,
+    intersectRect,
     mapAnnotation,
     translateAnnotation,
     translateOwned,

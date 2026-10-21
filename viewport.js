@@ -73,6 +73,27 @@
     ctx.restore();
   }
 
+  /** Region tool box: dim everything on the image except the picked part, with a dashed outline. */
+  function drawRegion() {
+    const r = S.region;
+    const item = r && S.items.find((it) => it.id === r.itemId);
+    if (!item || r.w <= 0 || r.h <= 0) return;
+    const scale = S.view.scale;
+    ctx.save();
+    ctx.fillStyle = 'rgba(0,0,0,0.45)';
+    ctx.beginPath();
+    ctx.rect(item.x, item.y, item.w, item.h);
+    ctx.rect(r.x, r.y, r.w, r.h);
+    ctx.fill('evenodd');
+    ctx.lineWidth = 1.5 / scale;
+    ctx.strokeStyle = '#fff';
+    ctx.strokeRect(r.x, r.y, r.w, r.h);
+    ctx.setLineDash([6 / scale, 4 / scale]);
+    ctx.strokeStyle = '#0a84ff';
+    ctx.strokeRect(r.x, r.y, r.w, r.h);
+    ctx.restore();
+  }
+
   function render() {
     const view = S.view;
     const dpr = window.devicePixelRatio || 1;
@@ -113,6 +134,7 @@
     }
 
     drawGuides();
+    drawRegion();
 
     const selAnn = App.selectedAnnotation();
     if (selAnn && !(S.editing && S.editing.id === selAnn.id)) {

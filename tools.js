@@ -8,15 +8,15 @@
 
   // which style controls are relevant for each tool / selected annotation type
   const CONTROLS_FOR = {
-    select: [], pen: ['color', 'width'], line: ['color', 'width'], arrow: ['color', 'width'],
+    select: [], pen: ['color', 'width'], line: ['color', 'width'], arrow: ['color', 'width', 'stroke'],
     rect: ['color', 'width'], ellipse: ['color', 'width'], highlight: ['color'],
-    text: ['color', 'text'], step: ['color'], censor: ['censor'],
+    text: ['color', 'text', 'stroke'], step: ['color'], censor: ['censor'], region: ['region'],
   };
   // annotation properties that each style control may change
   const EDITABLE_PROPS = {
-    pen: ['color', 'width'], line: ['color', 'width'], arrow: ['color', 'width'],
+    pen: ['color', 'width'], line: ['color', 'width'], arrow: ['color', 'width', 'stroke'],
     rect: ['color', 'width'], ellipse: ['color', 'width'], highlight: ['color'],
-    text: ['color', 'size', 'bg'], step: ['color'], censor: ['mode'],
+    text: ['color', 'size', 'bg', 'stroke'], step: ['color'], censor: ['mode'],
   };
 
   function updateControls() {
@@ -30,6 +30,7 @@
     App.commitText();
     S.tool = name;
     S.draft = null;
+    S.region = null;
     if (name !== 'select') {
       S.selectedId = null;
       S.selectedAnnId = null;
@@ -43,6 +44,9 @@
   function syncControlsFrom(a) {
     if (a.color) { S.style.color = a.color; ctl.color.value = a.color; }
     if (a.width) { S.style.width = a.width; ctl.width.value = a.width; }
+    if (a.type === 'text' || a.type === 'arrow') {
+      S.style.textStroke = !!a.stroke; ctl.stroke.checked = !!a.stroke;
+    }
     if (a.type === 'text') {
       S.style.fontSize = a.size; ctl.font.value = a.size;
       S.style.textBg = a.bg; ctl.bg.checked = a.bg;
@@ -102,6 +106,7 @@
   ctl.width.addEventListener('input', () => { S.style.width = Number(ctl.width.value); applyStyle({ width: S.style.width }); });
   ctl.font.addEventListener('input', () => { S.style.fontSize = Number(ctl.font.value); applyStyle({ size: S.style.fontSize }); });
   ctl.bg.addEventListener('change', () => { S.style.textBg = ctl.bg.checked; applyStyle({ bg: S.style.textBg }); });
+  ctl.stroke.addEventListener('change', () => { S.style.textStroke = ctl.stroke.checked; applyStyle({ stroke: S.style.textStroke }); });
   ctl.censor.addEventListener('change', () => { S.style.censorMode = ctl.censor.value; applyStyle({ mode: S.style.censorMode }); });
   Object.values(ctl).forEach((el) => el.addEventListener('change', () => { S.styleEditOpen = false; }));
 
