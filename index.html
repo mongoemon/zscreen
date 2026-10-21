@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' blob: data:; style-src 'self'; script-src 'self'" />
+  <title>Zcreenshot</title>
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" type="image/png" href="icon-192.png" />
+  <meta name="theme-color" content="#1b1c20" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Icon sprite (24x24 stroke icons). Every button below is icon-only; its title/aria-label come from i18n.js. -->
+  <svg class="sprite" aria-hidden="true" focusable="false">
+    <symbol id="i-paste" viewBox="0 0 24 24"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></symbol>
+    <symbol id="i-image-plus" viewBox="0 0 24 24"><path d="M16 5h6"/><path d="M19 2v6"/><path d="M21 11.5V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7.5"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/><circle cx="9" cy="9" r="2"/></symbol>
+    <symbol id="i-stack" viewBox="0 0 24 24"><rect x="5" y="2.5" width="14" height="5" rx="1"/><rect x="5" y="9.5" width="14" height="5" rx="1"/><rect x="5" y="16.5" width="14" height="5" rx="1"/></symbol>
+    <symbol id="i-fit" viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></symbol>
+    <symbol id="i-undo" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></symbol>
+    <symbol id="i-eraser" viewBox="0 0 24 24"><path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21"/><path d="M22 21H7"/><path d="m5 11 9 9"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="14" height="14" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></symbol>
+    <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol>
+
+    <symbol id="i-select" viewBox="0 0 24 24"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></symbol>
+    <symbol id="i-pen" viewBox="0 0 24 24"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></symbol>
+    <symbol id="i-line" viewBox="0 0 24 24"><circle cx="5" cy="19" r="2"/><circle cx="19" cy="5" r="2"/><path d="m6.5 17.5 11-11"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M7 17 17 7"/><path d="M7 7h10v10"/></symbol>
+    <symbol id="i-rect" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/></symbol>
+    <symbol id="i-ellipse" viewBox="0 0 24 24"><ellipse cx="12" cy="12" rx="10" ry="7"/></symbol>
+    <symbol id="i-highlight" viewBox="0 0 24 24"><path d="m9 11-6 6v3h9l3-3"/><path d="m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4"/></symbol>
+    <symbol id="i-text" viewBox="0 0 24 24"><path d="M4 7V4h16v3"/><path d="M9 20h6"/><path d="M12 4v16"/></symbol>
+    <symbol id="i-step" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m10 9.5 2-1.5v8"/></symbol>
+    <symbol id="i-censor" viewBox="0 0 24 24"><path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49"/><path d="M14.084 14.158a3 3 0 0 1-4.242-4.242"/><path d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143"/><path d="m2 2 20 20"/></symbol>
+  </svg>
+
+  <header class="toolbar">
+    <div class="brand">Zcreenshot</div>
+    <button id="version-badge" class="version" data-i18n-title="version.title" aria-haspopup="dialog">v0.5</button>
+    <button id="btn-paste" class="icon-btn" data-i18n-title="btn.paste"><svg class="icon"><use href="#i-paste"/></svg></button>
+    <button id="btn-open" class="icon-btn" data-i18n-title="btn.open"><svg class="icon"><use href="#i-image-plus"/></svg></button>
+    <span class="sep"></span>
+    <button id="btn-arrange" class="icon-btn" data-i18n-title="btn.arrange"><svg class="icon"><use href="#i-stack"/></svg></button>
+    <button id="btn-fit" class="icon-btn" data-i18n-title="btn.fit"><svg class="icon"><use href="#i-fit"/></svg></button>
+    <button id="btn-undo" class="icon-btn" data-i18n-title="btn.undo"><svg class="icon"><use href="#i-undo"/></svg></button>
+    <button id="btn-delete" class="icon-btn" data-i18n-title="btn.delete"><svg class="icon"><use href="#i-trash"/></svg></button>
+    <button id="btn-clear" class="icon-btn" data-i18n-title="btn.clear"><svg class="icon"><use href="#i-eraser"/></svg></button>
+    <span class="spacer"></span>
+    <label class="ctl lang">
+      <svg class="icon" aria-hidden="true"><use href="#i-globe"/></svg>
+      <select id="lang-select" data-i18n-title="lang.label"></select>
+    </label>
+    <span id="zoom-label" class="zoom">100%</span>
+    <button id="btn-copy" class="icon-btn" data-i18n-title="btn.copy"><svg class="icon"><use href="#i-copy"/></svg></button>
+    <button id="btn-save" class="icon-btn primary" data-i18n-title="btn.save"><svg class="icon"><use href="#i-download"/></svg></button>
+  </header>
+
+  <div class="tools" role="toolbar" data-i18n-aria="tools.label">
+    <button class="tool icon-btn active" data-tool="select" data-i18n-title="tool.select"><svg class="icon"><use href="#i-select"/></svg></button>
+    <button class="tool icon-btn" data-tool="pen" data-i18n-title="tool.pen"><svg class="icon"><use href="#i-pen"/></svg></button>
+    <button class="tool icon-btn" data-tool="line" data-i18n-title="tool.line"><svg class="icon"><use href="#i-line"/></svg></button>
+    <button class="tool icon-btn" data-tool="arrow" data-i18n-title="tool.arrow"><svg class="icon"><use href="#i-arrow"/></svg></button>
+    <button class="tool icon-btn" data-tool="rect" data-i18n-title="tool.rect"><svg class="icon"><use href="#i-rect"/></svg></button>
+    <button class="tool icon-btn" data-tool="ellipse" data-i18n-title="tool.ellipse"><svg class="icon"><use href="#i-ellipse"/></svg></button>
+    <button class="tool icon-btn" data-tool="highlight" data-i18n-title="tool.highlight"><svg class="icon"><use href="#i-highlight"/></svg></button>
+    <button class="tool icon-btn" data-tool="text" data-i18n-title="tool.text"><svg class="icon"><use href="#i-text"/></svg></button>
+    <button class="tool icon-btn" data-tool="step" data-i18n-title="tool.step"><svg class="icon"><use href="#i-step"/></svg></button>
+    <button class="tool icon-btn" data-tool="censor" data-i18n-title="tool.censor"><svg class="icon"><use href="#i-censor"/></svg></button>
+    <span class="sep"></span>
+    <span class="ctl" data-for="color">
+      <span data-i18n="ctl.color"></span> <input type="color" id="ctl-color" value="#ff3b30" data-i18n-aria="ctl.color" />
+      <span id="swatches" class="swatches"></span>
+    </span>
+    <label class="ctl" data-for="width"><span data-i18n="ctl.width"></span> <input type="range" id="ctl-width" min="1" max="24" value="4" /></label>
+    <label class="ctl" data-for="text"><span data-i18n="ctl.fontSize"></span> <input type="range" id="ctl-font" min="12" max="96" value="28" /></label>
+    <label class="ctl" data-for="text"><input type="checkbox" id="ctl-bg" /> <span data-i18n="ctl.textBg"></span></label>
+    <label class="ctl" data-for="censor"><span data-i18n="ctl.censorMode"></span>
+      <select id="ctl-censor">
+        <option value="pixel" data-i18n="censor.pixel"></option>
+        <option value="blur" data-i18n="censor.blur"></option>
+        <option value="solid" data-i18n="censor.solid"></option>
+      </select>
+    </label>
+  </div>
+
+  <main id="stage">
+    <canvas id="canvas"></canvas>
+    <textarea id="text-editor" class="text-editor" hidden spellcheck="false" data-i18n-aria="editor.label"></textarea>
+    <div id="hint" class="hint">
+      <div class="hint-title" data-i18n="hint.title"></div>
+      <div><span data-i18n="hint.pressPrefix"></span> <kbd>Ctrl/Cmd</kbd> + <kbd>V</kbd> <span data-i18n="hint.pressSuffix"></span></div>
+    </div>
+    <div id="dropmask" class="dropmask" data-i18n="drop.hint" hidden></div>
+    <div id="toast" class="toast" hidden></div>
+  </main>
+
+  <div id="changelog" class="changelog" role="dialog" aria-modal="true" aria-labelledby="changelog-title" hidden>
+    <div class="changelog-card">
+      <div class="changelog-head">
+        <h2 id="changelog-title" data-i18n="changelog.title"></h2>
+        <button id="changelog-close" class="icon-btn" data-i18n-title="changelog.close"><svg class="icon"><use href="#i-close"/></svg></button>
+      </div>
+      <div id="changelog-list" class="changelog-list"></div>
+    </div>
+  </div>
+
+  <input id="file-input" type="file" accept="image/*" multiple hidden />
+  <script src="version.js"></script>
+  <script src="i18n.js"></script>
+  <script src="keys.js"></script>
+  <script src="scene.js"></script>
+  <script src="draw.js"></script>
+  <script src="app.js"></script>
+  <script src="viewport.js"></script>
+  <script src="text-editor.js"></script>
+  <script src="tools.js"></script>
+  <script src="annotate.js"></script>
+  <script src="scene-actions.js"></script>
+  <script src="export.js"></script>
+  <script src="pointer.js"></script>
+  <script src="input.js"></script>
+  <script src="i18n-dom.js"></script>
+  <script src="version-badge.js"></script>
+  <script src="renderer.js"></script>
+</body>
+</html>

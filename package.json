@@ -1,0 +1,26 @@
+{
+  "name": "zcreenshot",
+  "version": "0.5.0",
+  "description": "Screenshot stacking editor - paste or drop images, arrange them freely",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "test": "node --test",
+    "icon": "node scripts/make-icon.js",
+    "build:web": "node scripts/make-icon.js && node scripts/build-web.js",
+    "serve:web": "node scripts/serve-web.js",
+    "dist:win": "electron-builder --win",
+    "dist:mac": "electron-builder --mac"
+  },
+  "build": {
+    "appId": "com.zcreenshot.app",
+    "productName": "Zcreenshot",
+    "files": ["*.js", "index.html", "style.css", "build/icon.png"],
+    "win": { "target": ["nsis", "portable"], "icon": "build/icon.png" },
+    "mac": { "target": "dmg", "category": "public.app-category.graphics-design" }
+  },
+  "devDependencies": {
+    "electron": "^33.0.0",
+    "electron-builder": "^25.0.0"
+  }
+}
