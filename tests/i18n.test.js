@@ -10,7 +10,8 @@ const root = path.join(__dirname, '..');
 const read = (file) => fs.readFileSync(path.join(root, file), 'utf8');
 const html = read('index.html');
 const scripts = [...html.matchAll(/<script src="([^"]+)"/g)].map((m) => m[1]);
-const sources = [...scripts, 'main.js'].map((file) => read(file));
+const sources = [...scripts, 'main.js', 'history-service.js'].map((file) => read(file));
+const dataKeys = (markup) => [...markup.matchAll(/data-i18n(?:-title|-aria)?="([^"]+)"/g)].map((m) => m[1]);
 
 const codes = I18n.LOCALES.map((l) => l.code);
 const keysOf = (code) => Object.keys(I18n.MESSAGES[code]).sort();
@@ -74,16 +75,17 @@ test('messages and locale list are frozen', () => {
 });
 
 test('every data-i18n* key in index.html exists', () => {
-  const used = [...html.matchAll(/data-i18n(?:-title|-aria)?="([^"]+)"/g)].map((m) => m[1]);
+  const used = dataKeys(html);
   assert.ok(used.length > 0);
   for (const key of used) assert.ok(key in I18n.MESSAGES[I18n.DEFAULT_LOCALE], `unknown key ${key} in index.html`);
 });
 
 test('every translation key referenced from the scripts exists, and none is unused', () => {
   const namespaces = new Set(keysOf(I18n.DEFAULT_LOCALE).map((k) => k.split('.')[0]));
-  const referenced = new Set([...html.matchAll(/data-i18n(?:-title|-aria)?="([^"]+)"/g)].map((m) => m[1]));
+  const referenced = new Set(dataKeys(html));
   for (const source of sources) {
     for (const m of source.matchAll(/'([a-z]+)\.([A-Za-z0-9]+)'/g)) {
+      if (['html', 'css', 'js'].includes(m[2])) continue; // a file name such as 'history.html', not a key
       if (namespaces.has(m[1])) referenced.add(`${m[1]}.${m[2]}`);
     }
   }
@@ -99,7 +101,9 @@ test('no hard-coded Thai text is left in the page or the scripts', () => {
   for (const file of scripts.filter((f) => !['i18n.js', 'version.js'].includes(f))) {
     assert.ok(!thai.test(read(file)), `${file} still has Thai text`);
   }
-  assert.ok(!thai.test(read('main.js')), 'main.js still has Thai text');
+  for (const file of ['main.js', 'history-service.js']) {
+    assert.ok(!thai.test(read(file)), `${file} still has Thai text`);
+  }
 });
 
 test('every button is labelled (title/aria-label come from the dictionary)', () => {

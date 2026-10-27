@@ -23,6 +23,8 @@
     <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="14" height="14" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></symbol>
     <symbol id="i-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></symbol>
     <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></symbol>
+    <symbol id="i-github" viewBox="0 0 24 24"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.4 5.4 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65S8.93 17.38 9 18v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></symbol>
+    <symbol id="i-history" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></symbol>
     <symbol id="i-close" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol>
 
     <symbol id="i-select" viewBox="0 0 24 24"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></symbol>
@@ -43,6 +45,7 @@
     <button id="version-badge" class="version" data-i18n-title="version.title" aria-haspopup="dialog">v0.5</button>
     <button id="btn-paste" class="icon-btn" data-i18n-title="btn.paste"><svg class="icon"><use href="#i-paste"/></svg></button>
     <button id="btn-open" class="icon-btn" data-i18n-title="btn.open"><svg class="icon"><use href="#i-image-plus"/></svg></button>
+    <button id="btn-history" class="icon-btn" data-i18n-title="btn.history" aria-pressed="false" hidden><svg class="icon"><use href="#i-history"/></svg></button>
     <span class="sep"></span>
     <button id="btn-arrange" class="icon-btn" data-i18n-title="btn.arrange"><svg class="icon"><use href="#i-stack"/></svg></button>
     <button id="btn-fit" class="icon-btn" data-i18n-title="btn.fit"><svg class="icon"><use href="#i-fit"/></svg></button>
@@ -54,6 +57,7 @@
       <svg class="icon" aria-hidden="true"><use href="#i-globe"/></svg>
       <select id="lang-select" data-i18n-title="lang.label"></select>
     </label>
+    <a id="btn-github" class="icon-btn" href="https://github.com/mongoemon/zscreen" target="_blank" rel="noopener noreferrer" data-i18n-title="btn.github"><svg class="icon"><use href="#i-github"/></svg></a>
     <span id="zoom-label" class="zoom">100%</span>
     <button id="btn-copy" class="icon-btn" data-i18n-title="btn.copy"><svg class="icon"><use href="#i-copy"/></svg></button>
     <button id="btn-save" class="icon-btn primary" data-i18n-title="btn.save"><svg class="icon"><use href="#i-download"/></svg></button>
@@ -93,6 +97,7 @@
     </label>
   </div>
 
+  <div class="workspace">
   <main id="stage">
     <canvas id="canvas"></canvas>
     <textarea id="text-editor" class="text-editor" hidden spellcheck="false" data-i18n-aria="editor.label"></textarea>
@@ -103,6 +108,18 @@
     <div id="dropmask" class="dropmask" data-i18n="drop.hint" hidden></div>
     <div id="toast" class="toast" hidden></div>
   </main>
+
+  <aside id="history-panel" class="history-panel" aria-labelledby="history-title" hidden>
+    <div class="history-head">
+      <h2 id="history-title" data-i18n="history.title"></h2>
+      <button id="history-clear" class="text-btn" data-i18n="history.clear"></button>
+      <button id="history-close" class="icon-btn" data-i18n-title="history.close"><svg class="icon"><use href="#i-close"/></svg></button>
+    </div>
+    <p class="history-hint" data-i18n="history.hint"></p>
+    <ul id="history-list" class="history-list"></ul>
+    <p id="history-empty" class="history-empty" data-i18n="history.empty" hidden></p>
+  </aside>
+  </div>
 
   <div id="changelog" class="changelog" role="dialog" aria-modal="true" aria-labelledby="changelog-title" hidden>
     <div class="changelog-card">
@@ -130,6 +147,7 @@
   <script src="region.js"></script>
   <script src="pointer.js"></script>
   <script src="input.js"></script>
+  <script src="history-panel.js"></script>
   <script src="i18n-dom.js"></script>
   <script src="version-badge.js"></script>
   <script src="renderer.js"></script>

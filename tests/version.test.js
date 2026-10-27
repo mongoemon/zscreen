@@ -10,8 +10,8 @@ test('VERSION is the newest changelog entry', () => {
   assert.equal(V.VERSION, V.CHANGELOG[0].version);
 });
 
-test('starts at 0.5.0 and matches package.json', () => {
-  assert.equal(V.VERSION, '0.5.0');
+test('current version matches package.json', () => {
+  assert.equal(V.VERSION, '0.6.0');
   assert.equal(pkg.version, V.VERSION);
 });
 

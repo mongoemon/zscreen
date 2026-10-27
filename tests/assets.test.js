@@ -34,6 +34,19 @@ test('the electron build ships every script', () => {
   }
 });
 
+test('the clipboard-history panel is wired up and shipped', () => {
+  assert.ok(scripts.includes('history-panel.js'), 'index.html does not load history-panel.js');
+  const files = JSON.parse(read('package.json')).build.files;
+  assert.ok(files.includes('*.js'), 'main-process modules need the *.js glob');
+  for (const file of ['history-service.js', 'clipboard-history.js']) {
+    assert.ok(fs.existsSync(path.join(root, file)), `${file} is missing`);
+  }
+  assert.match(read('main.js'), /const \{ createHistoryService \} = require\('\.\/history-service\.js'\)/);
+  const panelIds = [...read('history-panel.js').matchAll(/\$\('([^']+)'\)/g)].map((m) => m[1]);
+  assert.ok(panelIds.length > 0);
+  for (const id of panelIds) assert.ok(html.includes(`id="${id}"`), `history-panel.js needs #${id} in index.html`);
+});
+
 test('every icon <use> points to a symbol defined in the sprite', () => {
   const symbols = new Set([...html.matchAll(/<symbol id="([^"]+)"/g)].map((m) => m[1]));
   const used = [...html.matchAll(/<use href="#([^"]+)"/g)].map((m) => m[1]);

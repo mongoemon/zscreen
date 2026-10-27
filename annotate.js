@@ -42,7 +42,8 @@
   function isTooSmall(a) {
     if (a.type === 'pen') return a.points.length < 2;
     if (a.type === 'line' || a.type === 'arrow') return Math.hypot(a.x2 - a.x1, a.y2 - a.y1) < MIN_SHAPE;
-    return a.w < MIN_SHAPE || a.h < MIN_SHAPE;
+    // a thin box is still a valid shape; only a click-sized drag (both sides tiny) is dropped
+    return a.w < MIN_SHAPE && a.h < MIN_SHAPE;
   }
 
   function commitDraft() {

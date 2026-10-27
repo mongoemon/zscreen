@@ -3,6 +3,7 @@ const {
 } = require('electron');
 const path = require('path');
 const I18n = require('./i18n.js');
+const { createHistoryService } = require('./history-service.js');
 
 const ICON_PATH = path.join(__dirname, 'build', 'icon.png');
 const PASTE_SHORTCUT = 'CommandOrControl+Shift+V';
@@ -80,11 +81,27 @@ function pasteFromClipboard() {
   send('clipboard-image', image.toPNG());
 }
 
+// Images recorded from the clipboard; double-clicking one in the editor's history panel opens it.
+const clipboardHistory = createHistoryService({
+  getWebContents: () => (win ? win.webContents : null),
+  onUse: (png) => {
+    showWindow();
+    send('clipboard-image', png);
+  },
+  onVisibleChange: () => { if (tray) tray.setContextMenu(buildTrayMenu()); }, // keep the checkbox in sync
+});
+
 function buildTrayMenu() {
   const loginEnabled = app.getLoginItemSettings().openAtLogin;
   return Menu.buildFromTemplate([
     { label: I18n.t('tray.paste'), accelerator: PASTE_SHORTCUT, click: pasteFromClipboard },
     { label: I18n.t('tray.open'), click: showWindow },
+    {
+      label: I18n.t('tray.history'),
+      type: 'checkbox',
+      checked: clipboardHistory.isVisible(),
+      click: clipboardHistory.toggle,
+    },
     { type: 'separator' },
     {
       label: I18n.t('tray.startWithSystem'),
@@ -119,6 +136,7 @@ if (!app.requestSingleInstanceLock()) {
     I18n.setLocale(I18n.resolveLocale([app.getLocale()])); // tray follows the OS language
     createWindow();
     createTray();
+    clipboardHistory.start();
     if (!globalShortcut.register(PASTE_SHORTCUT, pasteFromClipboard)) {
       console.warn(`Global shortcut ${PASTE_SHORTCUT} is already taken`);
     }
@@ -126,7 +144,10 @@ if (!app.requestSingleInstanceLock()) {
   });
 
   app.on('before-quit', () => { isQuitting = true; });
-  app.on('will-quit', () => globalShortcut.unregisterAll());
+  app.on('will-quit', () => {
+    globalShortcut.unregisterAll();
+    clipboardHistory.stop();
+  });
   // Stay alive in the tray when every window is closed.
   app.on('window-all-closed', () => {});
 }

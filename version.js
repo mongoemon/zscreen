@@ -17,6 +17,22 @@
   /** @type {readonly Release[]} newest first */
   const CHANGELOG = Object.freeze([
     Object.freeze({
+      version: '0.6.0',
+      date: '2026-10-27',
+      changes: Object.freeze({
+        th: Object.freeze([
+          'ประวัติคลิปบอร์ด (Desktop): เก็บรูปที่คัดลอกไว้ 10 รูปล่าสุด ดับเบิลคลิกเพื่อเปิดในตัวแก้ไข',
+          'เส้นกรอบสี่เหลี่ยมแบบแคบมากๆ ไม่ถูกยกเลิกอีกต่อไป',
+          'เครื่องมือรูปทรงใช้ครั้งเดียว: หลังวาดเสร็จ คลิกครั้งถัดไปจะย้าย/ปรับขนาดรูปทรงแทนการวาดใหม่',
+        ]),
+        en: Object.freeze([
+          'Clipboard history (desktop): keeps the last 10 copied images; double-click one to open it in the editor',
+          'Very thin rectangle outlines are no longer cancelled',
+          'Shape tools are one-shot: after drawing, the next press moves/resizes the shape instead of drawing another',
+        ]),
+      }),
+    }),
+    Object.freeze({
       version: '0.5.0',
       date: '2026-10-21',
       changes: Object.freeze({

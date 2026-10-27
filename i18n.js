@@ -33,6 +33,8 @@
       'btn.clear': 'ล้างทั้งหมด',
       'btn.copy': 'คัดลอกรูปที่เลือก (ถ้าไม่ได้เลือกจะคัดลอกทั้งหมด) (Ctrl/Cmd+C)',
       'btn.save': 'บันทึกเป็น PNG (Ctrl/Cmd+S)',
+      'btn.github': 'ดูโค้ดบน GitHub',
+      'btn.history': 'แสดง/ซ่อนประวัติคลิปบอร์ด (10 รูปล่าสุด)',
 
       'tools.label': 'เครื่องมือแก้ไขภาพ',
       'tool.select': 'เลือก / ย้าย (V)',
@@ -88,6 +90,14 @@
       'tray.startWithSystem': 'เปิดพร้อมเครื่อง',
       'tray.quit': 'ออก',
       'tray.tooltip': 'Zcreenshot ({shortcut} = วางรูป)',
+      'tray.history': 'ประวัติคลิปบอร์ด',
+
+      'history.title': 'ประวัติคลิปบอร์ด',
+      'history.close': 'ซ่อนประวัติ',
+      'history.hint': 'ดับเบิลคลิกที่รูปเพื่อนำไปใช้งาน',
+      'history.empty': 'ยังไม่มีรูป ลองคัดลอกรูปหรือแคปหน้าจอดู',
+      'history.remove': 'ลบรูปนี้',
+      'history.clear': 'ล้างประวัติ',
     }),
     en: Object.freeze({
       'version.title': 'Press and hold to view the changelog',
@@ -102,6 +112,8 @@
       'btn.clear': 'Clear all',
       'btn.copy': 'Copy the selected image, or everything if none is selected (Ctrl/Cmd+C)',
       'btn.save': 'Save as PNG (Ctrl/Cmd+S)',
+      'btn.github': 'View source on GitHub',
+      'btn.history': 'Show / hide clipboard history (last 10 images)',
 
       'tools.label': 'Image editing tools',
       'tool.select': 'Select / move (V)',
@@ -157,6 +169,14 @@
       'tray.startWithSystem': 'Start with system',
       'tray.quit': 'Quit',
       'tray.tooltip': 'Zcreenshot ({shortcut} = paste)',
+      'tray.history': 'Clipboard history',
+
+      'history.title': 'Clipboard history',
+      'history.close': 'Hide history',
+      'history.hint': 'Double-click an image to use it',
+      'history.empty': 'No images yet. Copy an image or take a screenshot.',
+      'history.remove': 'Remove this image',
+      'history.clear': 'Clear history',
     }),
   });
 

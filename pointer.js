@@ -74,6 +74,19 @@
     S.drag = { kind: 'draw', sx, sy, start: w };
   }
 
+  // Shape tools are one-shot: once a shape has just been drawn (it is still selected), the next
+  // press manipulates things instead of starting another shape. Re-pick the tool to draw again.
+  const ONE_SHOT_TOOLS = new Set(['line', 'arrow', 'rect', 'ellipse']);
+
+  /** True when a press with a drawing tool should act as the select/move tool instead. */
+  function shouldSwitchToSelect(sx, sy, w) {
+    if (S.tool === 'select' || S.tool === 'region') return false;
+    const selAnn = selectedAnnotation();
+    if (selAnn && Scene.hitAnnotationHandle(selAnn, w, C.HANDLE / S.view.scale)) return true;
+    if (hitHandle(sx, sy)) return true;
+    return !!selAnn && ONE_SHOT_TOOLS.has(S.tool);
+  }
+
   canvas.addEventListener('mousedown', (e) => e.preventDefault()); // keep focus handling in our hands
 
   canvas.addEventListener('pointerdown', (e) => {
@@ -88,6 +101,7 @@
     if (e.button !== 0) return;
 
     const w = Scene.toWorld(S.view, sx, sy);
+    if (shouldSwitchToSelect(sx, sy, w)) App.setTool('select');
     if (S.tool === 'select') beginSelectDrag(sx, sy, w);
     else beginDraw(sx, sy, w);
     App.render();
