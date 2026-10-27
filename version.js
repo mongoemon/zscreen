@@ -17,6 +17,18 @@
   /** @type {readonly Release[]} newest first */
   const CHANGELOG = Object.freeze([
     Object.freeze({
+      version: '0.6.1',
+      date: '2026-10-28',
+      changes: Object.freeze({
+        th: Object.freeze([
+          'แก้ปัญหาแผงประวัติคลิปบอร์ดไม่แสดง เพราะค่าที่บันทึกไว้จากเวอร์ชันหน้าต่างลอยเดิม',
+        ]),
+        en: Object.freeze([
+          'Fixed the clipboard history panel staying hidden because of a setting saved by the old floating-window version',
+        ]),
+      }),
+    }),
+    Object.freeze({
       version: '0.6.0',
       date: '2026-10-27',
       changes: Object.freeze({

@@ -21,7 +21,9 @@ const CH = Object.freeze({
   clear: 'history:clear',
 });
 
-const SETTINGS_FILE = 'history-settings.json'; // {"show": boolean} in the user data folder
+// {"visible": boolean} in the user data folder. (The old floating-window build used
+// history-settings.json; its "closed" value must not hide the panel, hence the new name.)
+const SETTINGS_FILE = 'history-panel.json';
 
 /**
  * @param {{
@@ -43,7 +45,7 @@ function createHistoryService({ getWebContents, onUse, onVisibleChange = () => {
   /** Shown by default; only an explicit "off" is remembered. */
   function loadVisibleSetting() {
     try {
-      return JSON.parse(fs.readFileSync(settingsPath(), 'utf8')).show !== false;
+      return JSON.parse(fs.readFileSync(settingsPath(), 'utf8')).visible !== false;
     } catch (err) {
       if (err.code !== 'ENOENT') console.warn('clipboard history: could not read the settings', err);
       return true;
@@ -52,7 +54,7 @@ function createHistoryService({ getWebContents, onUse, onVisibleChange = () => {
 
   function saveVisibleSetting() {
     try {
-      fs.writeFileSync(settingsPath(), JSON.stringify({ show: visible }));
+      fs.writeFileSync(settingsPath(), JSON.stringify({ visible }));
     } catch (err) {
       console.warn('clipboard history: could not save the settings', err);
     }
