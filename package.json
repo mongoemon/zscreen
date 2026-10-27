@@ -1,6 +1,6 @@
 {
   "name": "zcreenshot",
-  "version": "0.6.1",
+  "version": "0.7.0",
   "description": "Screenshot stacking editor - paste or drop images, arrange them freely",
   "main": "main.js",
   "scripts": {

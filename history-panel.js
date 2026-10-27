@@ -1,10 +1,11 @@
 'use strict';
 
-// Clipboard-history side panel (desktop app only: the browser cannot watch the clipboard). The
-// main process records the images; this panel draws the cards and shows/hides itself on request.
+// Clipboard-history side panel. The desktop app records the real clipboard in the main process;
+// the browser has no such access, so web-history.js records pasted / dropped images instead.
+// Either way this panel just draws the cards and shows/hides itself on request.
 // Double-click (or Enter) on a card puts that image on the canvas.
 (() => {
-  const bridge = window.zcreenshot && window.zcreenshot.history;
+  const bridge = (window.zcreenshot && window.zcreenshot.history) || App.webHistory;
   if (!bridge) return;
 
   const { $ } = App;

@@ -4,7 +4,8 @@
 (() => {
   const { C, state: S, pushHistory, toast } = App;
 
-  async function addBlobs(blobs) {
+  /** `record: false` keeps an image out of the history (it came from there, or is an internal copy). */
+  async function addBlobs(blobs, { record = true } = {}) {
     const images = blobs.filter((b) => b && b.type.startsWith('image/'));
     if (images.length === 0) {
       toast('toast.noImageFiles');
@@ -22,6 +23,7 @@
       }
     }
     if (bitmaps.length === 0) return;
+    if (record && App.webHistory) App.webHistory.record(images);
 
     const sizes = bitmaps.map((b) => ({ w: b.width, h: b.height }));
     const placed = Scene.stackPositions(S.items, sizes, C.GAP);

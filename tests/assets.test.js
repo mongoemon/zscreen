@@ -58,6 +58,7 @@ test('every icon <use> points to a symbol defined in the sprite', () => {
 test('scripts load after the globals they use', () => {
   const providers = {
     App: 'app.js', Scene: 'scene.js', Draw: 'draw.js', Version: 'version.js', I18n: 'i18n.js', Keys: 'keys.js',
+    ClipboardHistory: 'clipboard-history.js',
   };
   for (const script of scripts) {
     const source = read(script);

@@ -73,7 +73,7 @@
       const blob = await regionBlob();
       if (!blob) return;
       App.setTool('select');
-      await App.addBlobs([blob]);
+      await App.addBlobs([blob], { record: false });
     } catch (err) {
       console.error(err);
       toast('toast.regionFailed');

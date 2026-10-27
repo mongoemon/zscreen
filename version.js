@@ -17,6 +17,18 @@
   /** @type {readonly Release[]} newest first */
   const CHANGELOG = Object.freeze([
     Object.freeze({
+      version: '0.7.0',
+      date: '2026-10-28',
+      changes: Object.freeze({
+        th: Object.freeze([
+          'ประวัติรูปบนเว็บ: เก็บรูปที่วาง/ลาก/เลือกไฟล์ไว้ 10 รูปล่าสุดในแท็บ ดับเบิลคลิกเพื่อนำกลับมาใช้',
+        ]),
+        en: Object.freeze([
+          'Image history on the web: keeps the last 10 pasted / dropped / picked images in the tab; double-click one to reuse it',
+        ]),
+      }),
+    }),
+    Object.freeze({
       version: '0.6.1',
       date: '2026-10-28',
       changes: Object.freeze({
