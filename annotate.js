@@ -15,11 +15,13 @@
       color: S.style.color,
       width: S.style.width,
     };
-    if (type === 'pen') return { ...base, points: [w] };
-    if (type === 'arrow') return { ...base, x1: w.x, y1: w.y, x2: w.x, y2: w.y, stroke: S.style.textStroke };
-    if (type === 'line') return { ...base, x1: w.x, y1: w.y, x2: w.x, y2: w.y };
+    const outline = { stroke: S.style.textStroke }; // contrasting rim, shared with the text outline option
+    if (type === 'pen') return { ...base, ...outline, points: [w] };
+    if (type === 'arrow') return { ...base, ...outline, x1: w.x, y1: w.y, x2: w.x, y2: w.y };
+    if (type === 'line') return { ...base, ...outline, x1: w.x, y1: w.y, x2: w.x, y2: w.y };
     if (type === 'censor') return { ...base, x: w.x, y: w.y, w: 0, h: 0, mode: S.style.censorMode };
-    return { ...base, x: w.x, y: w.y, w: 0, h: 0 }; // rect, ellipse, highlight
+    if (type === 'highlight') return { ...base, x: w.x, y: w.y, w: 0, h: 0 };
+    return { ...base, ...outline, x: w.x, y: w.y, w: 0, h: 0 }; // rect, ellipse
   }
 
   function updateDraft(w, shift) {
@@ -31,11 +33,13 @@
       S.draft = { ...draft, points: [...draft.points, w] };
       return;
     }
-    const end = shift ? Scene.constrainEnd(draft.type, s.x, s.y, w.x, w.y) : w;
     if (draft.type === 'line' || draft.type === 'arrow') {
+      const end = shift ? Scene.constrainEnd(draft.type, s.x, s.y, w.x, w.y) : w;
       S.draft = { ...draft, x2: end.x, y2: end.y };
+    } else if (draft.type === 'rect' || draft.type === 'ellipse') {
+      S.draft = { ...draft, ...Scene.normalizeRect(s.x, s.y, w.x, w.y), fill: !!shift }; // Shift = solid fill
     } else {
-      S.draft = { ...draft, ...Scene.normalizeRect(s.x, s.y, end.x, end.y) };
+      S.draft = { ...draft, ...Scene.normalizeRect(s.x, s.y, w.x, w.y) };
     }
   }
 

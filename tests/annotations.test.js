@@ -137,6 +137,18 @@ describe('hitAnnotation', () => {
     assert.equal(S.hitAnnotation([e], { x: 100, y: 50 }, 4), null);
   });
 
+  test('a filled rectangle is hit in the middle', () => {
+    const r = rect({ x: 0, y: 0, w: 200, h: 100, fill: true });
+    assert.ok(S.hitAnnotation([r], { x: 100, y: 50 }, 4));
+    assert.equal(S.hitAnnotation([r], { x: 300, y: 50 }, 4), null);
+  });
+
+  test('a filled ellipse is hit at the centre but not in the bounding-box corner', () => {
+    const e = rect({ type: 'ellipse', x: 0, y: 0, w: 200, h: 100, fill: true });
+    assert.ok(S.hitAnnotation([e], { x: 100, y: 50 }, 4));
+    assert.equal(S.hitAnnotation([e], { x: 5, y: 5 }, 4), null);
+  });
+
   test('filled kinds (text, censor, highlight, step) are hit anywhere inside', () => {
     const censor = { id: 9, ownerId: null, type: 'censor', x: 0, y: 0, w: 100, h: 100, mode: 'solid' };
     assert.ok(S.hitAnnotation([censor], { x: 50, y: 50 }, 2));
@@ -321,5 +333,99 @@ describe('arrow labels', () => {
     const a = arrow();
     const turned = S.moveHandle(a, 'p2', 0, 100);
     assert.ok(S.arrowLabelRect(turned).y + 30 <= 0);
+  });
+});
+
+describe('multi-selection helpers', () => {
+  const items = [
+    { id: 1, x: 0, y: 0, w: 100, h: 100 },
+    { id: 2, x: 0, y: 116, w: 100, h: 100 },
+  ];
+
+  test('itemsInRect returns every image the box overlaps', () => {
+    assert.deepEqual(S.itemsInRect(items, { x: 50, y: 50, w: 20, h: 100 }), [1, 2]);
+    assert.deepEqual(S.itemsInRect(items, { x: 50, y: 50, w: 20, h: 20 }), [1]);
+  });
+
+  test('itemsInRect ignores a box that only touches an edge or misses', () => {
+    assert.deepEqual(S.itemsInRect(items, { x: 100, y: 0, w: 50, h: 50 }), []);
+    assert.deepEqual(S.itemsInRect(items, { x: 300, y: 300, w: 10, h: 10 }), []);
+  });
+
+  test('annotationsInRect uses the annotation bounds', () => {
+    const list = [rect({ id: 1, x: 10, y: 10, w: 20, h: 20 }), rect({ id: 2, x: 500, y: 500, w: 20, h: 20 }), line({ id: 3 })];
+    assert.deepEqual(S.annotationsInRect(list, { x: 0, y: 0, w: 60, h: 60 }), [1, 3]);
+  });
+
+  test('toggleId adds a missing id and removes a present one without editing the input', () => {
+    const ids = Object.freeze([1, 2]);
+    assert.deepEqual(S.toggleId(ids, 3), [1, 2, 3]);
+    assert.deepEqual(S.toggleId(ids, 1), [2]);
+  });
+
+  test('mergeIds keeps order and drops duplicates', () => {
+    assert.deepEqual(S.mergeIds([1, 2], [2, 3]), [1, 2, 3]);
+  });
+});
+
+describe('crop helpers', () => {
+  const item = { id: 1, x: 100, y: 50, w: 200, h: 100 };
+  const view = { x: 10, y: 20, scale: 2 };
+  // screen box of the item: left 210, top 120, right 610, bottom 320
+
+  test('hitImageEdge reports the edge the pointer is on', () => {
+    assert.deepEqual(S.hitImageEdge(item, view, 211, 200, 6), { left: true, right: false, top: false, bottom: false });
+    assert.deepEqual(S.hitImageEdge(item, view, 400, 318, 6), { left: false, right: false, top: false, bottom: true });
+  });
+
+  test('hitImageEdge reports both edges at a corner and null away from the border', () => {
+    const c = S.hitImageEdge(item, view, 610, 320, 6);
+    assert.ok(c.right && c.bottom);
+    assert.equal(S.hitImageEdge(item, view, 400, 200, 6), null);
+    assert.equal(S.hitImageEdge(item, view, 100, 200, 6), null);
+    assert.equal(S.hitImageEdge(null, view, 210, 200, 6), null);
+  });
+
+  test('cropRect moves only the grabbed edges and keeps the rest', () => {
+    assert.deepEqual(S.cropRect(item, { left: true }, { x: 150, y: 0 }, 24), { x: 150, y: 50, w: 150, h: 100 });
+    assert.deepEqual(S.cropRect(item, { bottom: true, right: true }, { x: 250, y: 90 }, 24), { x: 100, y: 50, w: 150, h: 40 });
+  });
+
+  test('cropRect never grows past the image and keeps a minimum size', () => {
+    assert.deepEqual(S.cropRect(item, { left: true }, { x: 0, y: 0 }, 24), { x: 100, y: 50, w: 200, h: 100 });
+    assert.deepEqual(S.cropRect(item, { left: true }, { x: 999, y: 0 }, 24), { x: 276, y: 50, w: 24, h: 100 });
+    assert.deepEqual(S.cropRect(item, { top: true }, { x: 0, y: 999 }, 24), { x: 100, y: 126, w: 200, h: 24 });
+  });
+
+  test('cropSource maps a world rect to whole bitmap pixels', () => {
+    // bitmap is 400x200 for a 200x100 item (2 px per world unit)
+    assert.deepEqual(S.cropSource(item, { x: 150, y: 50, w: 150, h: 100 }, 400, 200), { sx: 100, sy: 0, sw: 300, sh: 200 });
+    assert.deepEqual(S.cropSource(item, { x: 100.2, y: 50, w: 0.1, h: 100 }, 400, 200), { sx: 0, sy: 0, sw: 1, sh: 200 });
+  });
+});
+
+describe('strokeColor (outline of a shape)', () => {
+  const channels = (hex) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
+  const lightness = (hex) => { const [r, g, b] = channels(hex); return (Math.max(r, g, b) + Math.min(r, g, b)) / 510; };
+
+  test('a normal colour gets a much darker outline of the same hue', () => {
+    const out = S.strokeColor('#ff3b30');
+    assert.match(out, /^#[0-9a-f]{6}$/);
+    assert.ok(lightness(out) < lightness('#ff3b30') * 0.6);
+    const [r, g, b] = channels(out);
+    assert.ok(r > g && r > b, `${out} should stay reddish`);
+  });
+
+  test('white gets a dark outline, so it shows on a white background', () => {
+    assert.ok(lightness(S.strokeColor('#ffffff')) < 0.4);
+  });
+
+  test('very dark colours get a light outline instead, so black shows on a black background', () => {
+    assert.ok(lightness(S.strokeColor('#000000')) > 0.7);
+    assert.ok(lightness(S.strokeColor('#101820')) > 0.7);
+  });
+
+  test('bright mid colours stay on the dark side', () => {
+    for (const hex of ['#ffcc00', '#34c759', '#0a84ff', '#ff9500']) assert.ok(lightness(S.strokeColor(hex)) < 0.25, hex);
   });
 });

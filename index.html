@@ -20,6 +20,7 @@
     <symbol id="i-undo" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></symbol>
     <symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></symbol>
     <symbol id="i-eraser" viewBox="0 0 24 24"><path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21"/><path d="M22 21H7"/><path d="m5 11 9 9"/></symbol>
+    <symbol id="i-copy-all" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 17H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v1"/><path d="M15.5 12.5v7M12 16h7"/></symbol>
     <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="14" height="14" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></symbol>
     <symbol id="i-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></symbol>
     <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></symbol>
@@ -60,6 +61,7 @@
     <a id="btn-github" class="icon-btn" href="https://github.com/mongoemon/zscreen" target="_blank" rel="noopener noreferrer" data-i18n-title="btn.github"><svg class="icon"><use href="#i-github"/></svg></a>
     <span id="zoom-label" class="zoom">100%</span>
     <button id="btn-copy" class="icon-btn" data-i18n-title="btn.copy"><svg class="icon"><use href="#i-copy"/></svg></button>
+    <button id="btn-copy-all" class="icon-btn" data-i18n-title="btn.copyAll"><svg class="icon"><use href="#i-copy-all"/></svg></button>
     <button id="btn-save" class="icon-btn primary" data-i18n-title="btn.save"><svg class="icon"><use href="#i-download"/></svg></button>
   </header>
 
@@ -84,7 +86,7 @@
       <span data-i18n="ctl.color"></span> <input type="color" id="ctl-color" value="#ff3b30" data-i18n-aria="ctl.color" />
       <span id="swatches" class="swatches"></span>
     </span>
-    <label class="ctl" data-for="width"><span data-i18n="ctl.width"></span> <input type="range" id="ctl-width" min="1" max="24" value="4" /></label>
+    <label class="ctl" data-for="width"><span data-i18n="ctl.width"></span> <input type="range" id="ctl-width" min="1" max="24" value="8" /></label>
     <label class="ctl" data-for="text"><span data-i18n="ctl.fontSize"></span> <input type="range" id="ctl-font" min="12" max="96" value="28" /></label>
     <label class="ctl" data-for="text"><input type="checkbox" id="ctl-bg" /> <span data-i18n="ctl.textBg"></span></label>
     <label class="ctl" data-for="stroke"><input type="checkbox" id="ctl-stroke" checked /> <span data-i18n="ctl.textStroke"></span></label>
@@ -141,6 +143,7 @@
   <script src="viewport.js"></script>
   <script src="text-editor.js"></script>
   <script src="tools.js"></script>
+  <script src="selection.js"></script>
   <script src="annotate.js"></script>
   <script src="scene-actions.js"></script>
   <script src="export.js"></script>

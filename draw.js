@@ -10,6 +10,8 @@
   const PIXEL_BLOCK = 12; // mosaic cell size, world px
   const BLUR_RADIUS = 10; // world px
   const STROKE_RATIO = 0.25; // text outline width relative to font size (half shows outside the glyphs)
+  const OUTLINE_RATIO = 0.35; // shape outline: extra width on each side, relative to the line width
+  const MIN_OUTLINE = 1.5; // ... but never thinner than this (world px)
 
   const scratch = document.createElement('canvas'); // reused for measuring and censor sampling
   const scratchCtx = scratch.getContext('2d');
@@ -74,20 +76,48 @@
     ctx.restore();
   }
 
+  /**
+   * With `stroke` on, a shape is first traced wider in a darker shade of its colour (lighter for very dark ones) (`trace` strokes the path),
+   * so the coloured line on top keeps a rim that reads on any image.
+   */
+  function strokeOutline(ctx, a, trace) {
+    if (!a.stroke) return;
+    ctx.save();
+    ctx.strokeStyle = root.Scene.strokeColor(a.color);
+    ctx.lineWidth = a.width + 2 * Math.max(MIN_OUTLINE, a.width * OUTLINE_RATIO);
+    trace();
+    ctx.restore();
+  }
+
   function drawArrow(ctx, a) {
     const size = root.Scene.arrowHeadSize(a.width);
     const [tip, left, right] = root.Scene.arrowHeadPoints(a.x1, a.y1, a.x2, a.y2, size);
     const baseX = (left.x + right.x) / 2;
     const baseY = (left.y + right.y) / 2;
-    ctx.beginPath();
-    ctx.moveTo(a.x1, a.y1);
-    ctx.lineTo(baseX, baseY); // stop at the head's base so the stroke does not poke through the tip
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(tip.x, tip.y);
-    ctx.lineTo(left.x, left.y);
-    ctx.lineTo(right.x, right.y);
-    ctx.closePath();
+    const shaft = () => {
+      ctx.beginPath();
+      ctx.moveTo(a.x1, a.y1);
+      ctx.lineTo(baseX, baseY); // stop at the head's base so the stroke does not poke through the tip
+      ctx.stroke();
+    };
+    const headPath = () => {
+      ctx.beginPath();
+      ctx.moveTo(tip.x, tip.y);
+      ctx.lineTo(left.x, left.y);
+      ctx.lineTo(right.x, right.y);
+      ctx.closePath();
+    };
+    if (a.stroke) {
+      strokeOutline(ctx, a, shaft);
+      ctx.save();
+      ctx.strokeStyle = root.Scene.strokeColor(a.color);
+      ctx.lineWidth = 2 * Math.max(MIN_OUTLINE, a.width * OUTLINE_RATIO);
+      headPath();
+      ctx.stroke();
+      ctx.restore();
+    }
+    shaft();
+    headPath();
     ctx.fillStyle = a.color;
     ctx.fill();
     drawArrowLabel(ctx, a);
@@ -157,29 +187,53 @@
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
     switch (a.type) {
-      case 'pen':
-        ctx.beginPath();
-        ctx.moveTo(a.points[0].x, a.points[0].y);
-        a.points.slice(1).forEach((p) => ctx.lineTo(p.x, p.y));
-        ctx.stroke();
+      case 'pen': {
+        const trace = () => {
+          ctx.beginPath();
+          ctx.moveTo(a.points[0].x, a.points[0].y);
+          a.points.slice(1).forEach((p) => ctx.lineTo(p.x, p.y));
+          ctx.stroke();
+        };
+        strokeOutline(ctx, a, trace);
+        trace();
         break;
-      case 'line':
-        ctx.beginPath();
-        ctx.moveTo(a.x1, a.y1);
-        ctx.lineTo(a.x2, a.y2);
-        ctx.stroke();
+      }
+      case 'line': {
+        const trace = () => {
+          ctx.beginPath();
+          ctx.moveTo(a.x1, a.y1);
+          ctx.lineTo(a.x2, a.y2);
+          ctx.stroke();
+        };
+        strokeOutline(ctx, a, trace);
+        trace();
         break;
+      }
       case 'arrow':
         drawArrow(ctx, a);
         break;
       case 'rect':
+        if (a.fill) {
+          ctx.fillStyle = a.color;
+          ctx.fillRect(a.x, a.y, a.w, a.h);
+        }
+        strokeOutline(ctx, a, () => ctx.strokeRect(a.x, a.y, a.w, a.h));
         ctx.strokeRect(a.x, a.y, a.w, a.h);
         break;
-      case 'ellipse':
-        ctx.beginPath();
-        ctx.ellipse(a.x + a.w / 2, a.y + a.h / 2, a.w / 2, a.h / 2, 0, 0, Math.PI * 2);
+      case 'ellipse': {
+        const path = () => {
+          ctx.beginPath();
+          ctx.ellipse(a.x + a.w / 2, a.y + a.h / 2, a.w / 2, a.h / 2, 0, 0, Math.PI * 2);
+        };
+        path();
+        if (a.fill) {
+          ctx.fillStyle = a.color;
+          ctx.fill();
+        }
+        strokeOutline(ctx, a, () => ctx.stroke());
         ctx.stroke();
         break;
+      }
       case 'highlight':
         ctx.globalAlpha = 0.35;
         ctx.fillStyle = a.color;

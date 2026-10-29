@@ -17,6 +17,26 @@
   /** @type {readonly Release[]} newest first */
   const CHANGELOG = Object.freeze([
     Object.freeze({
+      version: '1.0.0',
+      date: '2026-10-29',
+      changes: Object.freeze({
+        th: Object.freeze([
+          'เลือกหลายชิ้นพร้อมกัน: ลากกรอบ หรือ Ctrl+คลิกเพื่อเพิ่ม',
+          'ตัดรูป: Alt+ลากขอบรูป',
+          'ปุ่มคัดลอกทุกรูปไปยังคลิปบอร์ด',
+          'สี่เหลี่ยม/วงรี: กด Shift ค้างเพื่อเติมสีเต็ม',
+          'ปรับปรุงการทำงานของเครื่องมือวาดและการแสดงผล',
+        ]),
+        en: Object.freeze([
+          'Multi-select: drag a box, or Ctrl+click to add to the selection',
+          'Crop an image with Alt+drag on its edge',
+          'New button to copy every image to the clipboard',
+          'Rectangle / ellipse: hold Shift for a solid fill',
+          'Drawing tool and rendering improvements',
+        ]),
+      }),
+    }),
+    Object.freeze({
       version: '0.7.0',
       date: '2026-10-28',
       changes: Object.freeze({

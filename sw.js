@@ -1,6 +1,6 @@
 // App-shell cache so the installed PWA opens instantly and works offline.
 // Bump CACHE_VERSION whenever the shell files change.
-const CACHE_VERSION = 'zcreenshot-v11';
+const CACHE_VERSION = 'zcreenshot-v13';
 const SHELL = [
   './',
   './index.html',
@@ -14,6 +14,7 @@ const SHELL = [
   './viewport.js',
   './text-editor.js',
   './tools.js',
+  './selection.js',
   './annotate.js',
   './scene-actions.js',
   './export.js',
@@ -49,7 +50,8 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
   event.respondWith(
-    fetch(event.request)
+    // 'no-cache' revalidates with the server so the browser's HTTP cache cannot serve a stale shell
+    fetch(event.request, { cache: 'no-cache' })
       .then((response) => {
         const copy = response.clone();
         caches.open(CACHE_VERSION).then((cache) => cache.put(event.request, copy));

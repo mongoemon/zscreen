@@ -31,8 +31,7 @@
 
     pushHistory();
     S.items = [...S.items, ...added];
-    S.selectedId = added[added.length - 1].id;
-    S.selectedAnnId = null;
+    App.setSelection({ itemIds: [added[added.length - 1].id], annIds: [] });
     if (wasEmpty) App.fitView();
     else App.revealItem(added[0]);
     App.render();
@@ -58,7 +57,21 @@
     }
   }
 
+  function deleteGroup() {
+    const { itemIds, annIds } = S.group;
+    pushHistory();
+    S.items = S.items.filter((it) => !itemIds.includes(it.id));
+    // annotations go with their image, and the explicitly selected ones go too
+    S.annotations = S.annotations.filter((a) => !annIds.includes(a.id) && !itemIds.includes(a.ownerId));
+    App.clearSelection();
+    App.render();
+  }
+
   function deleteSelected() {
+    if (App.groupSize() > 0) {
+      deleteGroup();
+      return;
+    }
     if (S.selectedAnnId !== null) {
       pushHistory();
       S.annotations = S.annotations.filter((a) => a.id !== S.selectedAnnId);
@@ -81,10 +94,8 @@
     pushHistory();
     S.items = [];
     S.annotations = [];
-    S.selectedId = null;
-    S.selectedAnnId = null;
+    App.clearSelection();
     App.fitView();
-    App.updateControls();
     App.render();
   }
 

@@ -84,10 +84,8 @@
     else if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); App.deleteSelected(); }
     else if (e.key === 'Escape') {
       S.draft = null;
-      S.selectedId = null;
-      S.selectedAnnId = null;
+      App.clearSelection();
       if (S.tool !== 'select') App.setTool('select');
-      App.updateControls();
       App.render();
     } else if (!mod && !e.altKey && TOOL_KEYS[key]) { App.setTool(TOOL_KEYS[key]); }
   });
@@ -110,5 +108,6 @@
   $('btn-region-paste').addEventListener('click', () => App.pasteRegion());
   $('btn-region-copy').addEventListener('click', () => App.copyRegion());
   $('btn-copy').addEventListener('click', () => App.copyImage());
+  $('btn-copy-all').addEventListener('click', () => App.copyAll());
   $('btn-save').addEventListener('click', () => App.savePng());
 })();

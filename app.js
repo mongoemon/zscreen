@@ -49,11 +49,14 @@ window.App = (() => {
     annotations: [], // drawn above all images; each knows its owner image (ownerId)
     selectedId: null, // selected image
     selectedAnnId: null, // selected annotation
+    group: { itemIds: [], annIds: [] }, // two or more selected objects (then selectedId / selectedAnnId are null)
+    marquee: null, // selection box being dragged (world units)
+    crop: null, // {orig, rect}: the image rect and the part that is kept while Alt-dragging an edge (world units)
     draft: null, // annotation being drawn right now
     region: null, // {itemId, x, y, w, h} box picked with the region tool (world units, inside one image)
     editing: null, // text annotation being edited in the textarea
     tool: 'select',
-    style: { color: C.SWATCHES[0], width: 4, fontSize: 28, censorMode: 'pixel', textBg: false, textStroke: true },
+    style: { color: C.SWATCHES[0], width: 8, fontSize: 28, censorMode: 'pixel', textBg: false, textStroke: true },
     view: { x: C.VIEW_PAD, y: C.VIEW_PAD, scale: 1 },
     history: [],
     nextId: 1,
@@ -102,8 +105,7 @@ window.App = (() => {
     state.items = result.snapshot.items;
     state.annotations = result.snapshot.annotations;
     state.history = result.history;
-    if (!state.items.some((it) => it.id === state.selectedId)) state.selectedId = null;
-    if (!state.annotations.some((a) => a.id === state.selectedAnnId)) state.selectedAnnId = null;
+    App.pruneSelection();
     App.render();
   }
 

@@ -94,6 +94,54 @@
     ctx.restore();
   }
 
+  /** Outline every member of a multi-selection (no handles: the group is moved or deleted as a whole). */
+  function drawGroup() {
+    const { itemIds, annIds } = S.group;
+    ctx.save();
+    ctx.lineWidth = 2 / S.view.scale;
+    ctx.strokeStyle = '#ff7a45';
+    for (const it of S.items) if (itemIds.includes(it.id)) ctx.strokeRect(it.x, it.y, it.w, it.h);
+    ctx.restore();
+    for (const a of S.annotations) {
+      if (annIds.includes(a.id)) strokeSelectionBox(Scene.annotationBounds(a), S.view.scale);
+    }
+  }
+
+  /** While cropping: dim what will be cut away and outline what stays. */
+  function drawCrop() {
+    const c = S.crop;
+    if (!c) return;
+    const { orig, rect: r } = c;
+    const scale = S.view.scale;
+    ctx.save();
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.55)';
+    ctx.beginPath();
+    ctx.rect(orig.x, orig.y, orig.w, orig.h);
+    ctx.rect(r.x, r.y, r.w, r.h);
+    ctx.fill('evenodd');
+    ctx.lineWidth = 1.5 / scale;
+    ctx.strokeStyle = '#fff';
+    ctx.strokeRect(r.x, r.y, r.w, r.h);
+    ctx.setLineDash([6 / scale, 4 / scale]);
+    ctx.strokeStyle = '#ff7a45';
+    ctx.strokeRect(r.x, r.y, r.w, r.h);
+    ctx.restore();
+  }
+
+  /** The box being dragged with the select tool. */
+  function drawMarquee() {
+    const m = S.marquee;
+    if (!m) return;
+    ctx.save();
+    ctx.fillStyle = 'rgba(10, 132, 255, 0.12)';
+    ctx.fillRect(m.x, m.y, m.w, m.h);
+    ctx.lineWidth = 1 / S.view.scale;
+    ctx.setLineDash([5 / S.view.scale, 3 / S.view.scale]);
+    ctx.strokeStyle = '#0a84ff';
+    ctx.strokeRect(m.x, m.y, m.w, m.h);
+    ctx.restore();
+  }
+
   function render() {
     const view = S.view;
     const dpr = window.devicePixelRatio || 1;
@@ -142,9 +190,13 @@
       Scene.annotationHandles(selAnn).forEach((h) => drawHandle(h.x, h.y));
     }
 
+    drawGroup();
+    drawMarquee();
+    drawCrop();
+
     dom.hint.hidden = S.items.length > 0 || S.annotations.length > 0;
     dom.zoomLabel.textContent = `${Math.round(view.scale * 100)}%`;
-    dom.btnDelete.disabled = !sel && !selAnn;
+    dom.btnDelete.disabled = !sel && !selAnn && App.groupSize() === 0;
     dom.btnUndo.disabled = S.history.length === 0;
   }
 

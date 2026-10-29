@@ -16,6 +16,14 @@
 (() => {
   // PWA: register the service worker only when served over http(s) (not inside Electron's file://).
   if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+    // A new worker takes over right away (skipWaiting + claim); reload once so this tab runs the new files too.
+    const hadController = !!navigator.serviceWorker.controller;
+    let reloading = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (!hadController || reloading) return;
+      reloading = true;
+      location.reload();
+    });
     navigator.serviceWorker.register('sw.js').catch((err) => console.error('sw registration failed', err));
   }
 

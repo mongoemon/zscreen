@@ -8,16 +8,41 @@
 
   // which style controls are relevant for each tool / selected annotation type
   const CONTROLS_FOR = {
-    select: [], pen: ['color', 'width'], line: ['color', 'width'], arrow: ['color', 'width', 'stroke'],
-    rect: ['color', 'width'], ellipse: ['color', 'width'], highlight: ['color'],
+    select: [], pen: ['color', 'width', 'stroke'], line: ['color', 'width', 'stroke'], arrow: ['color', 'width', 'stroke'],
+    rect: ['color', 'width', 'stroke'], ellipse: ['color', 'width', 'stroke'], highlight: ['color'],
     text: ['color', 'text', 'stroke'], step: ['color'], censor: ['censor'], region: ['region'],
   };
   // annotation properties that each style control may change
   const EDITABLE_PROPS = {
-    pen: ['color', 'width'], line: ['color', 'width'], arrow: ['color', 'width', 'stroke'],
-    rect: ['color', 'width'], ellipse: ['color', 'width'], highlight: ['color'],
+    pen: ['color', 'width', 'stroke'], line: ['color', 'width', 'stroke'], arrow: ['color', 'width', 'stroke'],
+    rect: ['color', 'width', 'stroke'], ellipse: ['color', 'width', 'stroke'], highlight: ['color'],
     text: ['color', 'size', 'bg', 'stroke'], step: ['color'], censor: ['mode'],
   };
+
+  // The stroke width is remembered across reloads (browser localStorage, also inside Electron).
+  const WIDTH_KEY = 'zcreenshot-width';
+
+  function saveWidth(width) {
+    try {
+      localStorage.setItem(WIDTH_KEY, String(width));
+    } catch { /* private window / blocked storage: the choice just is not remembered */ }
+  }
+
+  /** The saved width when it is a valid slider value, otherwise null. */
+  function loadWidth() {
+    try {
+      const saved = Number(localStorage.getItem(WIDTH_KEY));
+      return Number.isInteger(saved) && saved >= Number(ctl.width.min) && saved <= Number(ctl.width.max) ? saved : null;
+    } catch {
+      return null;
+    }
+  }
+
+  const savedWidth = loadWidth();
+  if (savedWidth !== null) {
+    S.style.width = savedWidth;
+    ctl.width.value = String(savedWidth);
+  }
 
   function updateControls() {
     const selAnn = selectedAnnotation();
@@ -31,10 +56,7 @@
     S.tool = name;
     S.draft = null;
     S.region = null;
-    if (name !== 'select') {
-      S.selectedId = null;
-      S.selectedAnnId = null;
-    }
+    if (name !== 'select') App.clearSelection();
     document.querySelectorAll('[data-tool]').forEach((b) => b.classList.toggle('active', b.dataset.tool === name));
     dom.canvas.style.cursor = name === 'select' ? 'default' : name === 'text' ? 'text' : 'crosshair';
     updateControls();
@@ -44,7 +66,7 @@
   function syncControlsFrom(a) {
     if (a.color) { S.style.color = a.color; ctl.color.value = a.color; }
     if (a.width) { S.style.width = a.width; ctl.width.value = a.width; }
-    if (a.type === 'text' || a.type === 'arrow') {
+    if ((EDITABLE_PROPS[a.type] || []).includes('stroke')) {
       S.style.textStroke = !!a.stroke; ctl.stroke.checked = !!a.stroke;
     }
     if (a.type === 'text') {
@@ -57,6 +79,7 @@
   function selectAnnotation(a) {
     S.selectedAnnId = a ? a.id : null;
     S.selectedId = null;
+    S.group = { itemIds: [], annIds: [] };
     S.styleEditOpen = false;
     if (a) syncControlsFrom(a);
     updateControls();
@@ -103,7 +126,11 @@
   }
 
   ctl.color.addEventListener('input', () => { S.style.color = ctl.color.value; applyStyle({ color: S.style.color }); });
-  ctl.width.addEventListener('input', () => { S.style.width = Number(ctl.width.value); applyStyle({ width: S.style.width }); });
+  ctl.width.addEventListener('input', () => {
+    S.style.width = Number(ctl.width.value);
+    saveWidth(S.style.width);
+    applyStyle({ width: S.style.width });
+  });
   ctl.font.addEventListener('input', () => { S.style.fontSize = Number(ctl.font.value); applyStyle({ size: S.style.fontSize }); });
   ctl.bg.addEventListener('change', () => { S.style.textBg = ctl.bg.checked; applyStyle({ bg: S.style.textBg }); });
   ctl.stroke.addEventListener('change', () => { S.style.textStroke = ctl.stroke.checked; applyStyle({ stroke: S.style.textStroke }); });

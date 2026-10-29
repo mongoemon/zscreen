@@ -65,5 +65,22 @@
     }
   }
 
-  Object.assign(App, { composeCanvas, toPngBlob, savePng, copyImage });
+  // Copies every image with all annotations as one picture, whatever is selected.
+  async function copyAll() {
+    App.commitText();
+    if (S.items.length === 0) {
+      toast('toast.noImages');
+      return;
+    }
+    try {
+      const blob = await toPngBlob(composeCanvas(S.items, S.annotations));
+      await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+      toast('toast.copiedAll');
+    } catch (err) {
+      console.error(err);
+      toast('toast.copyFailed');
+    }
+  }
+
+  Object.assign(App, { composeCanvas, toPngBlob, savePng, copyImage, copyAll });
 })();

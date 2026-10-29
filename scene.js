@@ -173,7 +173,7 @@
   // Annotation shapes (all in world coordinates, each has `id` and `ownerId` = image it sits on, or null):
   //   pen {points[], color, width}        line/arrow {x1,y1,x2,y2, color, width}
   //   arrow also: label?, labelW, labelH  (text behind the tail, see arrowLabelRect)
-  //   rect/ellipse {x,y,w,h, color, width}  highlight {x,y,w,h, color}   censor {x,y,w,h, mode}
+  //   rect/ellipse {x,y,w,h, color, width, fill?}  highlight {x,y,w,h, color}   censor {x,y,w,h, mode}
   //   text {x,y,w,h, text, size, color, bg}  step {x,y, n, size(radius), color}
   const RECT_TYPES = new Set(['rect', 'ellipse', 'highlight', 'censor']);
   const isRectLike = (a) => RECT_TYPES.has(a.type);
@@ -265,6 +265,63 @@
     return null;
   }
 
+  // ---------- cropping an image ----------
+  /** Which borders of an item (screen space) the pointer is within `tol` px of; null when on none. */
+  function hitImageEdge(item, view, sx, sy, tol) {
+    if (!item) return null;
+    const left = item.x * view.scale + view.x;
+    const top = item.y * view.scale + view.y;
+    const right = left + item.w * view.scale;
+    const bottom = top + item.h * view.scale;
+    const alongY = sy >= top - tol && sy <= bottom + tol;
+    const alongX = sx >= left - tol && sx <= right + tol;
+    const edges = {
+      left: alongY && Math.abs(sx - left) <= tol,
+      right: alongY && Math.abs(sx - right) <= tol,
+      top: alongX && Math.abs(sy - top) <= tol,
+      bottom: alongX && Math.abs(sy - bottom) <= tol,
+    };
+    return Object.values(edges).some(Boolean) ? edges : null;
+  }
+
+  /** The cropped rect when the grabbed `edges` are dragged to world point `p`; it only ever shrinks. */
+  function cropRect(rect, edges, p, minSize) {
+    const right = rect.x + rect.w;
+    const bottom = rect.y + rect.h;
+    const x1 = edges.left ? clamp(p.x, rect.x, right - minSize) : rect.x;
+    const x2 = edges.right ? clamp(p.x, rect.x + minSize, right) : right;
+    const y1 = edges.top ? clamp(p.y, rect.y, bottom - minSize) : rect.y;
+    const y2 = edges.bottom ? clamp(p.y, rect.y + minSize, bottom) : bottom;
+    return { x: x1, y: y1, w: x2 - x1, h: y2 - y1 };
+  }
+
+  /** The crop `rect` (world, inside `item`) as a whole-pixel source rect of the item's bitmap. */
+  function cropSource(item, rect, bitmapW, bitmapH) {
+    const kx = bitmapW / item.w;
+    const ky = bitmapH / item.h;
+    const sx = clamp(Math.round((rect.x - item.x) * kx), 0, bitmapW - 1);
+    const sy = clamp(Math.round((rect.y - item.y) * ky), 0, bitmapH - 1);
+    return {
+      sx,
+      sy,
+      sw: clamp(Math.round(rect.w * kx), 1, bitmapW - sx),
+      sh: clamp(Math.round(rect.h * ky), 1, bitmapH - sy),
+    };
+  }
+
+  // ---------- multi-selection (all return new arrays) ----------
+  /** Ids of the images a world-space box overlaps. */
+  const itemsInRect = (items, box) => items.filter((it) => intersectRect(it, box)).map((it) => it.id);
+
+  /** Ids of the annotations whose bounds a world-space box overlaps. */
+  const annotationsInRect = (annotations, box) => annotations
+    .filter((a) => intersectRect(annotationBounds(a), box))
+    .map((a) => a.id);
+
+  const toggleId = (ids, id) => (ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id]);
+
+  const mergeIds = (a, b) => [...new Set([...a, ...b])];
+
   function annotationBounds(a) {
     if (a.type === 'pen' || isLineLike(a)) {
       const pts = a.type === 'pen' ? a.points : [{ x: a.x1, y: a.y1 }, { x: a.x2, y: a.y2 }];
@@ -308,6 +365,7 @@
       case 'rect': {
         const reach = tol + a.width / 2;
         const outer = inRect(p, a.x - reach, a.y - reach, a.w + 2 * reach, a.h + 2 * reach);
+        if (a.fill) return outer;
         const hollow = a.w > 2 * reach && a.h > 2 * reach
           && inRect(p, a.x + reach, a.y + reach, a.w - 2 * reach, a.h - 2 * reach);
         return outer && !hollow;
@@ -318,7 +376,8 @@
         const ry = a.h / 2;
         if (rx < reach || ry < reach) return inRect(p, a.x - reach, a.y - reach, a.w + 2 * reach, a.h + 2 * reach);
         const r = Math.hypot((p.x - (a.x + rx)) / rx, (p.y - (a.y + ry)) / ry);
-        return Math.abs(r - 1) <= reach / Math.min(rx, ry);
+        const edge = reach / Math.min(rx, ry);
+        return a.fill ? r <= 1 + edge : Math.abs(r - 1) <= edge;
       }
       default: {
         const b = annotationBounds(a);
@@ -397,7 +456,38 @@
     return luminance > 0.6 ? '#000000' : '#ffffff';
   }
 
+  const DARK_LIGHTNESS = 0.2; // HSL lightness below this counts as "very dark"
+  const OUTLINE_DARKEN = 0.3; // outline lightness relative to the colour's own
+  const OUTLINE_LIGHT = 0.85; // outline lightness used for very dark colours
+
+  /**
+   * Outline colour for a shape: the same hue, much darker; but a very dark colour gets a light
+   * outline instead (a dark outline would vanish on a dark background). #rrggbb in, #rrggbb out.
+   */
+  function strokeColor(hex) {
+    const n = parseInt(hex.replace('#', ''), 16);
+    const [r, g, b] = [(n >> 16) & 255, (n >> 8) & 255, n & 255].map((v) => v / 255);
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    const l = (max + min) / 2;
+    const d = max - min;
+    const s = d === 0 ? 0 : d / (1 - Math.abs(2 * l - 1));
+    let h = 0;
+    if (d !== 0) {
+      if (max === r) h = ((g - b) / d + 6) % 6;
+      else if (max === g) h = (b - r) / d + 2;
+      else h = (r - g) / d + 4;
+    }
+    const nl = l < DARK_LIGHTNESS ? OUTLINE_LIGHT : l * OUTLINE_DARKEN;
+    const c = (1 - Math.abs(2 * nl - 1)) * s;
+    const x = c * (1 - Math.abs((h % 2) - 1));
+    const m = nl - c / 2;
+    const [r1, g1, b1] = [[c, x, 0], [x, c, 0], [0, c, x], [0, x, c], [x, 0, c], [c, 0, x]][Math.floor(h) % 6];
+    return `#${[r1, g1, b1].map((v) => Math.round((v + m) * 255).toString(16).padStart(2, '0')).join('')}`;
+  }
+
   return {
+    strokeColor,
     normalizeRect,
     intersectRect,
     mapAnnotation,
@@ -407,6 +497,13 @@
     carryAnnotations,
     ownerAt,
     annotationBounds,
+    hitImageEdge,
+    cropRect,
+    cropSource,
+    itemsInRect,
+    annotationsInRect,
+    toggleId,
+    mergeIds,
     distToSegment,
     hitAnnotation,
     annotationHandles,
