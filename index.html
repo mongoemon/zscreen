@@ -11,6 +11,13 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <!-- Splash: covers the toolbar until renderer.js finishes setting up (then fades out and is removed). -->
+  <div id="splash" class="splash" aria-hidden="true">
+    <div class="splash-mark"><svg viewBox="0 0 24 24"><use href="#i-region"/><circle cx="12" cy="12" r="3"/></svg></div>
+    <div class="splash-name">Zcreenshot</div>
+    <div class="splash-bar"><span></span></div>
+  </div>
+
   <!-- Icon sprite (24x24 stroke icons). Every button below is icon-only; its title/aria-label come from i18n.js. -->
   <svg class="sprite" aria-hidden="true" focusable="false">
     <symbol id="i-paste" viewBox="0 0 24 24"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></symbol>
@@ -25,7 +32,9 @@
     <symbol id="i-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></symbol>
     <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></symbol>
     <symbol id="i-github" viewBox="0 0 24 24"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.4 5.4 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65S8.93 17.38 9 18v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></symbol>
-    <symbol id="i-history" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></symbol>
+    <symbol id="i-heart" viewBox="0 0 24 24"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></symbol>
+    <symbol id="i-history"viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></symbol>
+    <symbol id="i-scroll" viewBox="0 0 24 24"><rect x="3" y="2" width="12" height="16" rx="2"/><path d="M7 7h4"/><path d="M7 11h4"/><path d="M20 9v11"/><path d="m17 17 3 3 3-3"/></symbol>
     <symbol id="i-video" viewBox="0 0 24 24"><path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5"/><rect x="2" y="6" width="14" height="12" rx="2"/></symbol>
     <symbol id="i-stop" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="1.5"/></symbol>
     <symbol id="i-settings" viewBox="0 0 24 24"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></symbol>
@@ -46,11 +55,16 @@
 
   <header class="toolbar">
     <div class="brand">Zcreenshot</div>
-    <button id="version-badge" class="version" data-i18n-title="version.title" aria-haspopup="dialog">v0.5</button>
+    <button id="version-badge" class="version" data-i18n-title="version.title" aria-haspopup="dialog"></button>
     <button id="btn-paste" class="icon-btn" data-i18n-title="btn.paste"><svg class="icon"><use href="#i-paste"/></svg></button>
     <button id="btn-open" data-shortcut="openFiles" class="icon-btn" data-i18n-title="btn.open"><svg class="icon"><use href="#i-image-plus"/></svg></button>
-    <button id="btn-record" data-shortcut="record" class="icon-btn" data-i18n-title="btn.record" aria-haspopup="dialog"><svg class="icon"><use href="#i-video"/></svg></button>
     <button id="btn-history" data-shortcut="toggleHistory" class="icon-btn" data-i18n-title="btn.history" aria-pressed="false" hidden><svg class="icon"><use href="#i-history"/></svg></button>
+    <span class="sep"></span>
+    <!-- Capture: take something new from the screen (kept apart from the editing buttons) -->
+    <div class="tb-group" role="group" data-i18n-aria="group.capture">
+      <button id="btn-record" data-shortcut="record" class="icon-btn" data-i18n-title="btn.record" aria-haspopup="dialog"><svg class="icon"><use href="#i-video"/></svg></button>
+      <button id="btn-scroll" data-shortcut="scrollCapture" class="icon-btn" data-i18n-title="btn.scrollCapture" aria-haspopup="dialog"><svg class="icon"><use href="#i-scroll"/></svg></button>
+    </div>
     <span class="sep"></span>
     <button id="btn-arrange" data-shortcut="arrange" class="icon-btn" data-i18n-title="btn.arrange"><svg class="icon"><use href="#i-stack"/></svg></button>
     <button id="btn-fit" data-shortcut="fit" class="icon-btn" data-i18n-title="btn.fit"><svg class="icon"><use href="#i-fit"/></svg></button>
@@ -64,6 +78,8 @@
       <select id="lang-select" data-i18n-title="lang.label"></select>
     </label>
     <a id="btn-github" class="icon-btn" href="https://github.com/mongoemon/zscreen" target="_blank" rel="noopener noreferrer" data-i18n-title="btn.github"><svg class="icon"><use href="#i-github"/></svg></a>
+    <!-- hidden until the Ko-fi account is set up; plan: a "hide donate button" option in Settings -->
+    <a id="btn-donate" class="icon-btn" href="https://ko-fi.com/mongoemon" target="_blank" rel="noopener noreferrer" data-i18n-title="btn.donate" hidden><svg class="icon"><use href="#i-heart"/></svg></a>
     <span id="zoom-label" class="zoom">100%</span>
     <button id="btn-copy" data-shortcut="copy" class="icon-btn" data-i18n-title="btn.copy"><svg class="icon"><use href="#i-copy"/></svg></button>
     <button id="btn-copy-all" data-shortcut="copyAll" class="icon-btn" data-i18n-title="btn.copyAll"><svg class="icon"><use href="#i-copy-all"/></svg></button>
@@ -138,7 +154,8 @@
     </div>
   </div>
 
-  <!-- Screen recording: pick size / frame rate / source, then a small bar while recording. -->
+  <!-- Screen recording: pick size / frame rate / source, then a small bar while recording.
+       The same dialog and bar serve the scrolling screenshot (recorder.js switches the texts). -->
   <div id="record-dialog" class="modal" role="dialog" aria-modal="true" aria-labelledby="record-title" hidden>
     <div class="modal-card">
       <div class="modal-head">
@@ -147,8 +164,8 @@
       </div>
       <div class="modal-body">
         <div class="form-row">
-          <label class="field"><span data-i18n="record.size"></span><select id="record-size"></select></label>
-          <label class="field"><span data-i18n="record.fps"></span><select id="record-fps"></select></label>
+          <label id="record-size-row" class="field"><span data-i18n="record.size"></span><select id="record-size"></select></label>
+          <label id="record-fps-row" class="field"><span data-i18n="record.fps"></span><select id="record-fps"></select></label>
           <label id="record-hide-row" class="field check" hidden><input type="checkbox" id="record-hide" checked /> <span data-i18n="record.hideWindow"></span></label>
         </div>
         <div id="record-sources-wrap" hidden>
@@ -159,6 +176,7 @@
           <p id="record-permission" class="note warn" data-i18n="record.permission" hidden></p>
           <div id="record-sources" class="source-grid" role="listbox" data-i18n-aria="record.source"></div>
         </div>
+        <p id="record-scroll-note" class="note" data-i18n="scroll.note" hidden></p>
         <p id="record-web-note" class="note" data-i18n="record.webNote" hidden></p>
         <p id="record-stop-note" class="note"></p>
       </div>
@@ -170,7 +188,7 @@
 
   <div id="rec-bar" class="rec-bar" role="status" hidden>
     <span class="rec-dot" aria-hidden="true"></span>
-    <span data-i18n="rec.label"></span>
+    <span id="rec-label" data-i18n="rec.label"></span>
     <span id="rec-time" class="rec-time">0:00.0</span>
     <button id="rec-stop" class="primary" data-shortcut="record" data-i18n-title="rec.stopTitle"><svg class="icon"><use href="#i-stop"/></svg> <span data-i18n="rec.stop"></span></button>
   </div>
@@ -260,6 +278,8 @@
   <script src="shortcut-settings.js"></script>
   <script src="mediabunny.min.js"></script>
   <script src="video-editor.js"></script>
+  <script src="scroll-stitch.js"></script>
+  <script src="scroll-capture.js"></script>
   <script src="recorder.js"></script>
   <script src="pointer.js"></script>
   <script src="input.js"></script>

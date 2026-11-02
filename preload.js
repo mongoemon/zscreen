@@ -33,10 +33,13 @@ contextBridge.exposeInMainWorld('zcreenshot', {
       ipcRenderer.on('capture:stop', () => callback());
     },
     onOpen: (callback) => {
-      ipcRenderer.on('capture:open', () => callback());
+      ipcRenderer.on('capture:open', (_event, mode) => callback(mode));
     },
     onToggle: (callback) => {
       ipcRenderer.on('capture:toggle', () => callback());
+    },
+    onToggleScroll: (callback) => {
+      ipcRenderer.on('capture:toggle-scroll', () => callback());
     },
   },
   // System-wide shortcuts live in the main process (registered before any window exists).

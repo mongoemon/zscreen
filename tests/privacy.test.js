@@ -62,10 +62,10 @@ test('the video library only reads local files (no URL / stream sources)', () =>
   assert.ok(!/UrlSource|StreamSource|HlsInput/.test(editor));
 });
 
-test('no app file contains a web address; the page only has the GitHub link in the toolbar', () => {
+test('no app file contains a web address; the page only has the GitHub and donate links in the toolbar', () => {
   for (const file of appFiles) assert.deepEqual(read(file).match(/https?:\/\/[^\s'"`)]+/g) || [], [], `${file} has a URL`);
   const urls = html.match(/https?:\/\/[^\s'"`)]+/g) || [];
-  assert.deepEqual(urls, ['https://github.com/mongoemon/zscreen'], 'only the GitHub link (opens on click only)');
+  assert.deepEqual(urls, ['https://github.com/mongoemon/zscreen', 'https://ko-fi.com/mongoemon'], 'only the GitHub and donate links (open on click only)');
 });
 
 test('everything the app saves is listed in the README privacy section', () => {

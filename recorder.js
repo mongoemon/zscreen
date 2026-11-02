@@ -10,10 +10,12 @@
   const { $, toast } = App;
   const capture = window.zcreenshot && window.zcreenshot.capture;
   const recordButton = $('btn-record');
+  const scrollButton = $('btn-scroll');
   const canRecord = !!(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia && window.MediaRecorder);
   if (!canRecord) {
-    recordButton.hidden = true;
+    recordButton.parentElement.hidden = true; // the whole capture group
     App.toggleRecording = () => {};
+    App.toggleScrollCapture = () => {};
     return;
   }
 
@@ -28,10 +30,62 @@
   const startButton = $('record-start');
   const bar = $('rec-bar');
   const timeEl = $('rec-time');
+  const stopButton = $('rec-stop');
+
+  // what changes between the two modes: texts, the shortcut shown, and which fields are visible
+  const MODES = Object.freeze({
+    video: Object.freeze({
+      title: 'record.title',
+      start: 'record.start',
+      label: 'rec.label',
+      stopTitle: 'rec.stopTitle',
+      shortcut: 'record',
+      hint: Object.freeze({ web: 'record.stopHintWeb', desktop: 'record.stopHintDesktop', desktopNoKey: 'record.stopHintDesktopNoKey' }),
+    }),
+    scroll: Object.freeze({
+      title: 'scroll.title',
+      start: 'scroll.start',
+      label: 'scroll.label',
+      stopTitle: 'scroll.stopTitle',
+      shortcut: 'scrollCapture',
+      hint: Object.freeze({ web: 'scroll.stopHintWeb', desktop: 'scroll.stopHintDesktop', desktopNoKey: 'scroll.stopHintDesktopNoKey' }),
+    }),
+  });
+  const LOST_HINT_MS = 1500; // how long "scroll slower" stays up after the page was lost
 
   let sources = [];
   let chosenId = null;
-  let session = null; // {stream, recorder, chunks, startedAt, timer} while recording
+  let mode = 'video';
+  // while capturing: video {kind, stream, recorder, chunks, startedAt, timer};
+  // scroll {kind, stream, capture, lostAt, height, stopping}
+  let session = null;
+
+  /** Points an element at another message key (kept on locale changes by i18n-dom.js). */
+  function setText(el, key) {
+    el.dataset.i18n = key;
+    el.textContent = I18n.t(key);
+  }
+
+  function setTitle(el, key, shortcut) {
+    el.dataset.i18nTitle = key;
+    el.dataset.shortcut = shortcut;
+    const text = App.shortcutTitle(key, shortcut);
+    el.title = text;
+    el.setAttribute('aria-label', text);
+  }
+
+  function setMode(next) {
+    mode = next;
+    const m = MODES[mode];
+    setText($('record-title'), m.title);
+    setText(startButton, m.start);
+    setText($('rec-label'), m.label);
+    setTitle(stopButton, m.stopTitle, m.shortcut);
+    $('record-size-row').hidden = mode === 'scroll';
+    $('record-fps-row').hidden = mode === 'scroll';
+    $('record-scroll-note').hidden = mode !== 'scroll';
+    fillOptions();
+  }
 
   // ---------- dialog ----------
   const sizeLabel = (size) => (size === 0 ? I18n.t('size.original') : `${size}p`);
@@ -50,9 +104,10 @@
   function fillOptions() {
     fillSelect(sizeSelect, VideoOptions.SIZES, sizeLabel);
     fillSelect(fpsSelect, VideoOptions.RECORD_FPS, (fps) => I18n.t('unit.fps', { fps }));
-    const shortcut = App.shortcutHint('record');
-    let stopHint = I18n.t('record.stopHintWeb');
-    if (capture) stopHint = shortcut ? I18n.t('record.stopHintDesktop', { shortcut }) : I18n.t('record.stopHintDesktopNoKey');
+    const { hint } = MODES[mode];
+    const shortcut = App.shortcutHint(MODES[mode].shortcut);
+    let stopHint = I18n.t(hint.web);
+    if (capture) stopHint = shortcut ? I18n.t(hint.desktop, { shortcut }) : I18n.t(hint.desktopNoKey);
     $('record-stop-note').textContent = stopHint;
     renderSources();
   }
@@ -129,8 +184,11 @@
 
   const isRecordDialogOpen = () => !dialog.hidden;
 
-  function openRecordDialog() {
+  /** @param {'video'|'scroll'} [nextMode] an open dialog just switches mode */
+  function openRecordDialog(nextMode = 'video') {
     if (session || App.isVideoEditorOpen()) return;
+    setMode(nextMode);
+    if (!dialog.hidden) return;
     dialog.hidden = false;
     startButton.focus();
     if (capture) loadSources();
@@ -138,36 +196,102 @@
 
   function closeRecordDialog() {
     dialog.hidden = true;
-    recordButton.focus();
+    (mode === 'scroll' ? scrollButton : recordButton).focus();
+  }
+
+  /** The chosen source as a stream (null when cancelled or failed; a failure shows `failKey`). */
+  async function openStream(video, failKey) {
+    if (capture) {
+      const source = sources.find((s) => s.id === chosenId);
+      if (!source) {
+        toast('toast.pickSource');
+        return null;
+      }
+      await capture.select({ id: source.id, name: source.name });
+    }
+    try {
+      return await navigator.mediaDevices.getDisplayMedia({ video, audio: false });
+    } catch (err) {
+      if (err.name !== 'NotAllowedError' && err.name !== 'AbortError') { // not just "cancelled in the picker"
+        console.error('getDisplayMedia failed', err);
+        toast(failKey);
+      }
+      return null;
+    }
+  }
+
+  function showBar() {
+    closeRecordDialog();
+    bar.hidden = false;
+    recordButton.disabled = true;
+    scrollButton.disabled = true;
+    if (capture) capture.setRecording(true, { hideWindow: hideCheckbox.checked });
+  }
+
+  function hideBar() {
+    bar.hidden = true;
+    recordButton.disabled = false;
+    scrollButton.disabled = false;
+    timeEl.classList.remove('warn');
+    if (capture) capture.setRecording(false);
+  }
+
+  // ---------- scrolling screenshot ----------
+  function showScrollProgress(current) {
+    const lost = performance.now() - current.lostAt < LOST_HINT_MS;
+    timeEl.textContent = lost ? I18n.t('scroll.slower') : I18n.t('scroll.height', { px: current.height });
+    timeEl.classList.toggle('warn', lost);
+  }
+
+  async function startScrollCapture() {
+    const stream = await openStream({ frameRate: { ideal: 30 }, cursor: 'never' }, 'toast.scrollFailed');
+    if (!stream) return;
+    const current = {
+      kind: 'scroll', stream, capture: null, lostAt: -Infinity, height: 0, stopping: false, timer: null,
+    };
+    session = current;
+    current.capture = App.startScrollCapture(stream, {
+      onProgress: ({ status, height }) => {
+        current.height = height;
+        if (status === 'lost') current.lostAt = performance.now();
+        if (status === 'full') {
+          toast('toast.scrollFull');
+          stopRecording();
+        }
+      },
+    });
+    stream.getVideoTracks()[0].addEventListener('ended', stopRecording); // "Stop sharing" / window closed
+    showScrollProgress(current);
+    current.timer = setInterval(() => showScrollProgress(current), 200);
+    showBar();
+  }
+
+  async function finishScrollCapture(current) {
+    current.stopping = true;
+    clearInterval(current.timer);
+    let blob = null;
+    try {
+      blob = await current.capture.stop();
+    } catch (err) {
+      console.error('scroll capture failed', err);
+    }
+    session = null;
+    hideBar();
+    if (blob) await App.addBlobs([blob]);
+    else toast('toast.scrollFailed');
   }
 
   // ---------- recording ----------
   async function startRecording() {
     if (session) return;
-    const maxShort = Number(sizeSelect.value);
-    const fps = Number(fpsSelect.value);
-    if (capture) {
-      const source = sources.find((s) => s.id === chosenId);
-      if (!source) {
-        toast('toast.pickSource');
-        return;
-      }
-      await capture.select({ id: source.id, name: source.name });
-    }
-
-    let stream;
-    try {
-      stream = await navigator.mediaDevices.getDisplayMedia({
-        video: { frameRate: { ideal: fps, max: fps } },
-        audio: false,
-      });
-    } catch (err) {
-      if (err.name !== 'NotAllowedError' && err.name !== 'AbortError') { // not just "cancelled in the picker"
-        console.error('getDisplayMedia failed', err);
-        toast('toast.recordFailed');
-      }
+    if (mode === 'scroll') {
+      await startScrollCapture();
       return;
     }
+    const maxShort = Number(sizeSelect.value);
+    const fps = Number(fpsSelect.value);
+    const stream = await openStream({ frameRate: { ideal: fps, max: fps } }, 'toast.recordFailed');
+    if (!stream) return;
 
     // Scale the capture itself (rather than re-drawing frames), so recording keeps working while
     // the window is hidden and costs no extra CPU.
@@ -199,27 +323,30 @@
     }
 
     const current = {
-      stream, recorder, chunks: [], startedAt: 0, timer: null,
+      kind: 'video', stream, recorder, chunks: [], startedAt: 0, timer: null,
     };
     session = current;
     recorder.addEventListener('dataavailable', (e) => { if (e.data.size > 0) current.chunks.push(e.data); });
     recorder.addEventListener('stop', () => finishRecording(current));
     track.addEventListener('ended', stopRecording); // browser "Stop sharing", or the window was closed
 
-    closeRecordDialog();
     recorder.start(1000);
     current.startedAt = performance.now();
     timeEl.textContent = VideoOptions.formatTime(0);
     current.timer = setInterval(() => {
       timeEl.textContent = VideoOptions.formatTime((performance.now() - current.startedAt) / 1000);
     }, TICK_MS);
-    bar.hidden = false;
-    recordButton.disabled = true;
-    if (capture) capture.setRecording(true, { hideWindow: hideCheckbox.checked });
+    showBar();
   }
 
+  /** Stops whichever capture is running (video or scrolling screenshot). */
   function stopRecording() {
-    if (!session || session.recorder.state === 'inactive') return;
+    if (!session) return;
+    if (session.kind === 'scroll') {
+      if (!session.stopping) finishScrollCapture(session);
+      return;
+    }
+    if (session.recorder.state === 'inactive') return;
     session.recorder.stop();
     session.stream.getTracks().forEach((t) => t.stop());
   }
@@ -228,9 +355,7 @@
     const durationMs = performance.now() - current.startedAt;
     clearInterval(current.timer);
     session = null;
-    bar.hidden = true;
-    recordButton.disabled = false;
-    if (capture) capture.setRecording(false);
+    hideBar();
 
     const type = current.recorder.mimeType || (current.chunks[0] && current.chunks[0].type) || 'video/webm';
     let blob = new Blob(current.chunks, { type });
@@ -247,13 +372,23 @@
 
   /** The record shortcut: open the dialog, start when it is open, stop while recording. */
   function toggleRecording() {
+    toggle('video');
+  }
+
+  /** The scrolling-screenshot shortcut: the same open -> start -> stop, in scroll mode. */
+  function toggleScrollCapture() {
+    toggle('scroll');
+  }
+
+  function toggle(wanted) {
     if (session) stopRecording();
-    else if (isRecordDialogOpen()) startRecording();
-    else openRecordDialog();
+    else if (isRecordDialogOpen() && mode === wanted) startRecording();
+    else openRecordDialog(wanted);
   }
 
   // ---------- wiring ----------
-  recordButton.addEventListener('click', openRecordDialog);
+  recordButton.addEventListener('click', () => openRecordDialog('video'));
+  scrollButton.addEventListener('click', () => openRecordDialog('scroll'));
   $('record-close').addEventListener('click', closeRecordDialog);
   $('record-refresh').addEventListener('click', loadSources);
   startButton.addEventListener('click', startRecording);
@@ -272,11 +407,12 @@
   $('record-web-note').hidden = !!capture;
   if (capture) {
     capture.onStop(stopRecording);
-    capture.onOpen(openRecordDialog);
+    capture.onOpen((which) => openRecordDialog(which === 'scroll' ? 'scroll' : 'video'));
     capture.onToggle(toggleRecording);
+    capture.onToggleScroll(toggleScrollCapture);
   }
 
   Object.assign(App, {
-    openRecordDialog, isRecordDialogOpen, stopRecording, toggleRecording,
+    openRecordDialog, isRecordDialogOpen, stopRecording, toggleRecording, toggleScrollCapture,
   });
 })();

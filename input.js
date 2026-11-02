@@ -112,6 +112,11 @@
       App.toggleRecording();
       return;
     }
+    if (!App.isSettingsOpen() && !App.isVideoEditorOpen() && App.shortcutMatches('scrollCapture', e)) {
+      e.preventDefault();
+      App.toggleScrollCapture();
+      return;
+    }
     if (modalOpen()) return; // the dialog handles its own keys (Esc closes it)
     if (e.target === textEditor) return; // typing text: no shortcuts
     if (e.code === 'Space') { // built in: hold Space to pan

@@ -1,5 +1,5 @@
 const {
-  app, BrowserWindow, Tray, Menu, clipboard, globalShortcut, nativeImage,
+  app, BrowserWindow, Tray, Menu, clipboard, globalShortcut, nativeImage, shell,
 } = require('electron');
 const path = require('path');
 const I18n = require('./i18n.js');
@@ -47,6 +47,12 @@ function createWindow() {
   });
 
   win.loadFile(path.join(__dirname, 'index.html'));
+
+  // target="_blank" links (GitHub, donate) open in the system browser, not a new app window.
+  win.webContents.setWindowOpenHandler(({ url }) => {
+    if (/^https:\/\//.test(url)) shell.openExternal(url);
+    return { action: 'deny' };
+  });
 
   win.webContents.on('did-finish-load', () => {
     rendererReady = true;
@@ -112,7 +118,12 @@ const screenCapture = createCaptureService({
 
 function openRecorder() {
   showWindow();
-  send('capture:open');
+  send('capture:open', 'video');
+}
+
+function openScrollCapture() {
+  showWindow();
+  send('capture:open', 'scroll');
 }
 
 /** Record shortcut: opens the record dialog, starts recording when it is open, stops when recording. */
@@ -125,9 +136,19 @@ function toggleRecording() {
   send('capture:toggle');
 }
 
+/** Scrolling-screenshot shortcut: the same open -> start -> stop, in scroll mode. */
+function toggleScrollCapture() {
+  if (screenCapture.isRecording()) {
+    screenCapture.requestStop();
+    return;
+  }
+  showWindow();
+  send('capture:toggle-scroll');
+}
+
 // System-wide shortcuts; the user can change them in the editor's settings dialog.
 const globalShortcuts = createGlobalShortcuts({
-  handlers: { globalPaste: pasteFromClipboard, record: toggleRecording },
+  handlers: { globalPaste: pasteFromClipboard, record: toggleRecording, scrollCapture: toggleScrollCapture },
   getWebContents: () => (win ? win.webContents : null),
   onChange: () => refreshTray(),
 });
@@ -145,6 +166,12 @@ function buildTrayMenu() {
     screenCapture.isRecording()
       ? { label: I18n.t('tray.stopRecording'), accelerator: globalShortcuts.accelerator('record'), click: screenCapture.requestStop }
       : { label: I18n.t('tray.record'), accelerator: globalShortcuts.accelerator('record'), click: openRecorder },
+    {
+      label: I18n.t('tray.scrollCapture'),
+      accelerator: globalShortcuts.accelerator('scrollCapture'),
+      enabled: !screenCapture.isRecording(),
+      click: openScrollCapture,
+    },
     {
       label: I18n.t('tray.history'),
       type: 'checkbox',

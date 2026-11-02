@@ -33,4 +33,11 @@
   App.updateControls();
   window.addEventListener('resize', App.resizeCanvas);
   App.resizeCanvas();
+
+  // Everything is set up: fade the splash out, then drop it (timer covers reduced motion, where no transition runs).
+  const splash = App.$('splash');
+  requestAnimationFrame(() => {
+    splash.classList.add('done');
+    setTimeout(() => splash.remove(), 400);
+  });
 })();

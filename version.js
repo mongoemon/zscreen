@@ -17,6 +17,22 @@
   /** @type {readonly Release[]} newest first */
   const CHANGELOG = Object.freeze([
     Object.freeze({
+      version: '1.2.0',
+      date: '2026-11-02',
+      changes: Object.freeze({
+        th: Object.freeze([
+          'จับภาพแบบเลื่อนหน้าจอ: เลือกหน้าต่าง แล้วเลื่อนลงช้าๆ ภาพจะต่อกันเป็นภาพยาวภาพเดียวและเพิ่มลงในแคนวาส (ปุ่มลัด Ctrl/Cmd+Alt+S)',
+          'ปุ่มสนับสนุนผู้พัฒนา (Ko-fi)',
+          'Desktop: ลิงก์ GitHub / Ko-fi เปิดในเบราว์เซอร์ของเครื่อง',
+        ]),
+        en: Object.freeze([
+          'Scrolling screenshot: pick a window and scroll it down slowly; the frames are joined into one tall image on the canvas (Ctrl/Cmd+Alt+S)',
+          'Support the developer button (Ko-fi)',
+          'Desktop: the GitHub / Ko-fi links open in the system browser',
+        ]),
+      }),
+    }),
+    Object.freeze({
       version: '1.1.0',
       date: '2026-11-02',
       changes: Object.freeze({

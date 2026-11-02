@@ -33,6 +33,7 @@
   const ACTIONS = Object.freeze([
     action('globalPaste', 'global', 'global', 'sc.globalPaste', ['Mod+Shift+V'], { desktopOnly: true }),
     action('record', 'global', 'recording', 'sc.record', ['Mod+Alt+R']),
+    action('scrollCapture', 'global', 'recording', 'sc.scrollCapture', ['Mod+Alt+S']),
 
     action('settings', 'image', 'image', 'sc.settings', ['Mod+,']),
     action('openFiles', 'image', 'image', 'sc.openFiles', ['Mod+O']),
