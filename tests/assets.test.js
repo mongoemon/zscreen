@@ -47,6 +47,36 @@ test('the clipboard-history panel is wired up and shipped', () => {
   for (const id of panelIds) assert.ok(html.includes(`id="${id}"`), `history-panel.js needs #${id} in index.html`);
 });
 
+test('screen recording is wired up and shipped', () => {
+  for (const file of ['video-options.js', 'gif-encoder.js', 'webm-duration.js', 'mediabunny.min.js', 'video-editor.js', 'recorder.js']) {
+    assert.ok(scripts.includes(file), `index.html does not load ${file}`);
+  }
+  assert.ok(fs.existsSync(path.join(root, 'capture-service.js')), 'capture-service.js is missing');
+  assert.match(read('main.js'), /const \{ createCaptureService \} = require\('\.\/capture-service\.js'\)/);
+  // recorded / previewed videos are blob: URLs, which the CSP must allow as media
+  assert.match(html, /media-src 'self' blob:/);
+  // Mediabunny (fast video conversion) starts its helper workers from blob: URLs
+  assert.match(html, /worker-src 'self' blob:/);
+  for (const file of ['recorder.js', 'video-editor.js']) {
+    const ids = [...read(file).matchAll(/\$\('([^']+)'\)/g)].map((m) => m[1]);
+    assert.ok(ids.length > 0);
+    for (const id of ids) assert.ok(html.includes(`id="${id}"`), `${file} needs #${id} in index.html`);
+  }
+});
+
+test('shortcut settings are wired up and shipped', () => {
+  for (const file of ['shortcuts.js', 'shortcut-settings.js']) assert.ok(scripts.includes(file), `index.html does not load ${file}`);
+  assert.ok(fs.existsSync(path.join(root, 'global-shortcuts.js')), 'global-shortcuts.js is missing');
+  assert.match(read('main.js'), /const \{ createGlobalShortcuts \} = require\('\.\/global-shortcuts\.js'\)/);
+  const ids = [...read('shortcut-settings.js').matchAll(/\$\('([^']+)'\)/g)].map((m) => m[1]);
+  for (const id of ids) assert.ok(html.includes(`id="${id}"`), `shortcut-settings.js needs #${id} in index.html`);
+  // every data-shortcut names a real action
+  const Shortcuts = require('../shortcuts.js');
+  const named = [...html.matchAll(/data-shortcut="([^"]+)"/g)].map((m) => m[1]);
+  assert.ok(named.length > 0);
+  for (const id of named) assert.ok(Shortcuts.getAction(id), `data-shortcut="${id}" is not an action`);
+});
+
 test('every icon <use> points to a symbol defined in the sprite', () => {
   const symbols = new Set([...html.matchAll(/<symbol id="([^"]+)"/g)].map((m) => m[1]));
   const used = [...html.matchAll(/<use href="#([^"]+)"/g)].map((m) => m[1]);
@@ -59,6 +89,8 @@ test('scripts load after the globals they use', () => {
   const providers = {
     App: 'app.js', Scene: 'scene.js', Draw: 'draw.js', Version: 'version.js', I18n: 'i18n.js', Keys: 'keys.js',
     ClipboardHistory: 'clipboard-history.js',
+    VideoOptions: 'video-options.js', GifEncoder: 'gif-encoder.js', WebmDuration: 'webm-duration.js',
+    Mediabunny: 'mediabunny.min.js', Shortcuts: 'shortcuts.js',
   };
   for (const script of scripts) {
     const source = read(script);

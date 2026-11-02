@@ -1,7 +1,8 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
-// Narrow bridge: the renderer can subscribe to these two events from the tray/main process, and use
-// the clipboard history that the main process records.
+// Narrow bridge: the renderer can subscribe to these two events from the tray/main process, use
+// the clipboard history that the main process records, record the screen and change the
+// system-wide shortcuts.
 contextBridge.exposeInMainWorld('zcreenshot', {
   onClipboardImage: (callback) => {
     ipcRenderer.on('clipboard-image', (_event, bytes) => callback(bytes));
@@ -21,5 +22,26 @@ contextBridge.exposeInMainWorld('zcreenshot', {
     use: (id) => ipcRenderer.send('history:use', id),
     remove: (id) => ipcRenderer.send('history:remove', id),
     clear: () => ipcRenderer.send('history:clear'),
+  },
+  // Screen recording: list screens/windows, pick one for the next getDisplayMedia() call, and tell
+  // the main process when recording starts/stops (it hides the window and offers tray/shortcut stop).
+  capture: {
+    getSources: () => ipcRenderer.invoke('capture:sources'),
+    select: (source) => ipcRenderer.invoke('capture:select', source),
+    setRecording: (recording, options) => ipcRenderer.send('capture:recording', recording, options),
+    onStop: (callback) => {
+      ipcRenderer.on('capture:stop', () => callback());
+    },
+    onOpen: (callback) => {
+      ipcRenderer.on('capture:open', () => callback());
+    },
+    onToggle: (callback) => {
+      ipcRenderer.on('capture:toggle', () => callback());
+    },
+  },
+  // System-wide shortcuts live in the main process (registered before any window exists).
+  shortcuts: {
+    get: () => ipcRenderer.invoke('shortcuts:get'),
+    set: (id, bindings) => ipcRenderer.invoke('shortcuts:set', id, bindings),
   },
 });

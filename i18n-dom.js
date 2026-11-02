@@ -4,6 +4,8 @@
 //   data-i18n="key"        -> element text
 //   data-i18n-title="key"  -> title + aria-label (icon-only buttons)
 //   data-i18n-aria="key"   -> aria-label only
+//   data-shortcut="action" -> the action's current key goes into the title ("({key})" in the
+//                             message, or the whole title for text buttons); see shortcut-settings.js
 // The chosen language is remembered in localStorage; otherwise the browser language is used.
 (() => {
   const { $ } = App;
@@ -31,9 +33,14 @@
     $('lang-select').value = I18n.getLocale();
     document.querySelectorAll('[data-i18n]').forEach((el) => { el.textContent = I18n.t(el.dataset.i18n); });
     document.querySelectorAll('[data-i18n-title]').forEach((el) => {
-      const text = I18n.t(el.dataset.i18nTitle);
+      const text = el.dataset.shortcut
+        ? App.shortcutTitle(el.dataset.i18nTitle, el.dataset.shortcut)
+        : I18n.t(el.dataset.i18nTitle);
       el.title = text;
       el.setAttribute('aria-label', text);
+    });
+    document.querySelectorAll('[data-shortcut]:not([data-i18n-title])').forEach((el) => {
+      el.title = App.shortcutHint(el.dataset.shortcut);
     });
     document.querySelectorAll('[data-i18n-aria]').forEach((el) => {
       el.setAttribute('aria-label', I18n.t(el.dataset.i18nAria));
@@ -63,5 +70,5 @@
     applyTranslations();
   }
 
-  Object.assign(App, { setupLocalization });
+  Object.assign(App, { setupLocalization, applyTranslations });
 })();

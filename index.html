@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' blob: data:; style-src 'self'; script-src 'self'" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' blob: data:; media-src 'self' blob:; style-src 'self'; script-src 'self'; worker-src 'self' blob:" />
   <title>Zcreenshot</title>
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" type="image/png" href="icon-192.png" />
@@ -26,6 +26,9 @@
     <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></symbol>
     <symbol id="i-github" viewBox="0 0 24 24"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.4 5.4 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65S8.93 17.38 9 18v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></symbol>
     <symbol id="i-history" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></symbol>
+    <symbol id="i-video" viewBox="0 0 24 24"><path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5"/><rect x="2" y="6" width="14" height="12" rx="2"/></symbol>
+    <symbol id="i-stop" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="1.5"/></symbol>
+    <symbol id="i-settings" viewBox="0 0 24 24"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></symbol>
     <symbol id="i-close" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol>
 
     <symbol id="i-select" viewBox="0 0 24 24"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></symbol>
@@ -45,42 +48,44 @@
     <div class="brand">Zcreenshot</div>
     <button id="version-badge" class="version" data-i18n-title="version.title" aria-haspopup="dialog">v0.5</button>
     <button id="btn-paste" class="icon-btn" data-i18n-title="btn.paste"><svg class="icon"><use href="#i-paste"/></svg></button>
-    <button id="btn-open" class="icon-btn" data-i18n-title="btn.open"><svg class="icon"><use href="#i-image-plus"/></svg></button>
-    <button id="btn-history" class="icon-btn" data-i18n-title="btn.history" aria-pressed="false" hidden><svg class="icon"><use href="#i-history"/></svg></button>
+    <button id="btn-open" data-shortcut="openFiles" class="icon-btn" data-i18n-title="btn.open"><svg class="icon"><use href="#i-image-plus"/></svg></button>
+    <button id="btn-record" data-shortcut="record" class="icon-btn" data-i18n-title="btn.record" aria-haspopup="dialog"><svg class="icon"><use href="#i-video"/></svg></button>
+    <button id="btn-history" data-shortcut="toggleHistory" class="icon-btn" data-i18n-title="btn.history" aria-pressed="false" hidden><svg class="icon"><use href="#i-history"/></svg></button>
     <span class="sep"></span>
-    <button id="btn-arrange" class="icon-btn" data-i18n-title="btn.arrange"><svg class="icon"><use href="#i-stack"/></svg></button>
-    <button id="btn-fit" class="icon-btn" data-i18n-title="btn.fit"><svg class="icon"><use href="#i-fit"/></svg></button>
-    <button id="btn-undo" class="icon-btn" data-i18n-title="btn.undo"><svg class="icon"><use href="#i-undo"/></svg></button>
-    <button id="btn-delete" class="icon-btn" data-i18n-title="btn.delete"><svg class="icon"><use href="#i-trash"/></svg></button>
-    <button id="btn-clear" class="icon-btn" data-i18n-title="btn.clear"><svg class="icon"><use href="#i-eraser"/></svg></button>
+    <button id="btn-arrange" data-shortcut="arrange" class="icon-btn" data-i18n-title="btn.arrange"><svg class="icon"><use href="#i-stack"/></svg></button>
+    <button id="btn-fit" data-shortcut="fit" class="icon-btn" data-i18n-title="btn.fit"><svg class="icon"><use href="#i-fit"/></svg></button>
+    <button id="btn-undo" data-shortcut="undo" class="icon-btn" data-i18n-title="btn.undo"><svg class="icon"><use href="#i-undo"/></svg></button>
+    <button id="btn-delete" data-shortcut="deleteSelected" class="icon-btn" data-i18n-title="btn.delete"><svg class="icon"><use href="#i-trash"/></svg></button>
+    <button id="btn-clear" data-shortcut="clearAll" class="icon-btn" data-i18n-title="btn.clear"><svg class="icon"><use href="#i-eraser"/></svg></button>
     <span class="spacer"></span>
+    <button id="btn-settings" class="icon-btn" data-shortcut="settings" data-i18n-title="btn.settings" aria-haspopup="dialog"><svg class="icon"><use href="#i-settings"/></svg></button>
     <label class="ctl lang">
       <svg class="icon" aria-hidden="true"><use href="#i-globe"/></svg>
       <select id="lang-select" data-i18n-title="lang.label"></select>
     </label>
     <a id="btn-github" class="icon-btn" href="https://github.com/mongoemon/zscreen" target="_blank" rel="noopener noreferrer" data-i18n-title="btn.github"><svg class="icon"><use href="#i-github"/></svg></a>
     <span id="zoom-label" class="zoom">100%</span>
-    <button id="btn-copy" class="icon-btn" data-i18n-title="btn.copy"><svg class="icon"><use href="#i-copy"/></svg></button>
-    <button id="btn-copy-all" class="icon-btn" data-i18n-title="btn.copyAll"><svg class="icon"><use href="#i-copy-all"/></svg></button>
-    <button id="btn-save" class="icon-btn primary" data-i18n-title="btn.save"><svg class="icon"><use href="#i-download"/></svg></button>
+    <button id="btn-copy" data-shortcut="copy" class="icon-btn" data-i18n-title="btn.copy"><svg class="icon"><use href="#i-copy"/></svg></button>
+    <button id="btn-copy-all" data-shortcut="copyAll" class="icon-btn" data-i18n-title="btn.copyAll"><svg class="icon"><use href="#i-copy-all"/></svg></button>
+    <button id="btn-save" data-shortcut="save" class="icon-btn primary" data-i18n-title="btn.save"><svg class="icon"><use href="#i-download"/></svg></button>
   </header>
 
   <div class="tools" role="toolbar" data-i18n-aria="tools.label">
-    <button class="tool icon-btn active" data-tool="select" data-i18n-title="tool.select"><svg class="icon"><use href="#i-select"/></svg></button>
-    <button class="tool icon-btn" data-tool="region" data-i18n-title="tool.region"><svg class="icon"><use href="#i-region"/></svg></button>
-    <button class="tool icon-btn" data-tool="pen" data-i18n-title="tool.pen"><svg class="icon"><use href="#i-pen"/></svg></button>
-    <button class="tool icon-btn" data-tool="line" data-i18n-title="tool.line"><svg class="icon"><use href="#i-line"/></svg></button>
-    <button class="tool icon-btn" data-tool="arrow" data-i18n-title="tool.arrow"><svg class="icon"><use href="#i-arrow"/></svg></button>
-    <button class="tool icon-btn" data-tool="rect" data-i18n-title="tool.rect"><svg class="icon"><use href="#i-rect"/></svg></button>
-    <button class="tool icon-btn" data-tool="ellipse" data-i18n-title="tool.ellipse"><svg class="icon"><use href="#i-ellipse"/></svg></button>
-    <button class="tool icon-btn" data-tool="highlight" data-i18n-title="tool.highlight"><svg class="icon"><use href="#i-highlight"/></svg></button>
-    <button class="tool icon-btn" data-tool="text" data-i18n-title="tool.text"><svg class="icon"><use href="#i-text"/></svg></button>
-    <button class="tool icon-btn" data-tool="step" data-i18n-title="tool.step"><svg class="icon"><use href="#i-step"/></svg></button>
-    <button class="tool icon-btn" data-tool="censor" data-i18n-title="tool.censor"><svg class="icon"><use href="#i-censor"/></svg></button>
+    <button class="tool icon-btn active" data-tool="select" data-shortcut="toolSelect" data-i18n-title="tool.select"><svg class="icon"><use href="#i-select"/></svg></button>
+    <button class="tool icon-btn" data-tool="region" data-shortcut="toolRegion" data-i18n-title="tool.region"><svg class="icon"><use href="#i-region"/></svg></button>
+    <button class="tool icon-btn" data-tool="pen" data-shortcut="toolPen" data-i18n-title="tool.pen"><svg class="icon"><use href="#i-pen"/></svg></button>
+    <button class="tool icon-btn" data-tool="line" data-shortcut="toolLine" data-i18n-title="tool.line"><svg class="icon"><use href="#i-line"/></svg></button>
+    <button class="tool icon-btn" data-tool="arrow" data-shortcut="toolArrow" data-i18n-title="tool.arrow"><svg class="icon"><use href="#i-arrow"/></svg></button>
+    <button class="tool icon-btn" data-tool="rect" data-shortcut="toolRect" data-i18n-title="tool.rect"><svg class="icon"><use href="#i-rect"/></svg></button>
+    <button class="tool icon-btn" data-tool="ellipse" data-shortcut="toolEllipse" data-i18n-title="tool.ellipse"><svg class="icon"><use href="#i-ellipse"/></svg></button>
+    <button class="tool icon-btn" data-tool="highlight" data-shortcut="toolHighlight" data-i18n-title="tool.highlight"><svg class="icon"><use href="#i-highlight"/></svg></button>
+    <button class="tool icon-btn" data-tool="text" data-shortcut="toolText" data-i18n-title="tool.text"><svg class="icon"><use href="#i-text"/></svg></button>
+    <button class="tool icon-btn" data-tool="step" data-shortcut="toolStep" data-i18n-title="tool.step"><svg class="icon"><use href="#i-step"/></svg></button>
+    <button class="tool icon-btn" data-tool="censor" data-shortcut="toolCensor" data-i18n-title="tool.censor"><svg class="icon"><use href="#i-censor"/></svg></button>
     <span class="sep"></span>
     <span class="ctl" data-for="region">
-      <button id="btn-region-paste" class="icon-btn" data-i18n-title="region.paste"><svg class="icon"><use href="#i-image-plus"/></svg></button>
-      <button id="btn-region-copy" class="icon-btn" data-i18n-title="region.copy"><svg class="icon"><use href="#i-copy"/></svg></button>
+      <button id="btn-region-paste" data-shortcut="regionPaste" class="icon-btn" data-i18n-title="region.paste"><svg class="icon"><use href="#i-image-plus"/></svg></button>
+      <button id="btn-region-copy" data-shortcut="copy" class="icon-btn" data-i18n-title="region.copy"><svg class="icon"><use href="#i-copy"/></svg></button>
     </span>
     <span class="ctl" data-for="color">
       <span data-i18n="ctl.color"></span> <input type="color" id="ctl-color" value="#ff3b30" data-i18n-aria="ctl.color" />
@@ -133,10 +138,114 @@
     </div>
   </div>
 
-  <input id="file-input" type="file" accept="image/*" multiple hidden />
+  <!-- Screen recording: pick size / frame rate / source, then a small bar while recording. -->
+  <div id="record-dialog" class="modal" role="dialog" aria-modal="true" aria-labelledby="record-title" hidden>
+    <div class="modal-card">
+      <div class="modal-head">
+        <h2 id="record-title" data-i18n="record.title"></h2>
+        <button id="record-close" class="icon-btn" data-i18n-title="dialog.close"><svg class="icon"><use href="#i-close"/></svg></button>
+      </div>
+      <div class="modal-body">
+        <div class="form-row">
+          <label class="field"><span data-i18n="record.size"></span><select id="record-size"></select></label>
+          <label class="field"><span data-i18n="record.fps"></span><select id="record-fps"></select></label>
+          <label id="record-hide-row" class="field check" hidden><input type="checkbox" id="record-hide" checked /> <span data-i18n="record.hideWindow"></span></label>
+        </div>
+        <div id="record-sources-wrap" hidden>
+          <div class="section-head">
+            <h3 data-i18n="record.source"></h3>
+            <button id="record-refresh" class="text-btn" data-i18n="record.refresh"></button>
+          </div>
+          <p id="record-permission" class="note warn" data-i18n="record.permission" hidden></p>
+          <div id="record-sources" class="source-grid" role="listbox" data-i18n-aria="record.source"></div>
+        </div>
+        <p id="record-web-note" class="note" data-i18n="record.webNote" hidden></p>
+        <p id="record-stop-note" class="note"></p>
+      </div>
+      <div class="modal-foot">
+        <button id="record-start" class="primary" data-i18n="record.start"></button>
+      </div>
+    </div>
+  </div>
+
+  <div id="rec-bar" class="rec-bar" role="status" hidden>
+    <span class="rec-dot" aria-hidden="true"></span>
+    <span data-i18n="rec.label"></span>
+    <span id="rec-time" class="rec-time">0:00.0</span>
+    <button id="rec-stop" class="primary" data-shortcut="record" data-i18n-title="rec.stopTitle"><svg class="icon"><use href="#i-stop"/></svg> <span data-i18n="rec.stop"></span></button>
+  </div>
+
+  <!-- Video editor: trim a recording and save it as GIF, a small / low-bitrate video, or as recorded. -->
+  <div id="video-editor" class="modal" role="dialog" aria-modal="true" aria-labelledby="video-title" hidden>
+    <div id="video-card" class="modal-card wide" tabindex="-1">
+      <div class="modal-head">
+        <h2 id="video-title" data-i18n="video.title"></h2>
+        <span id="video-info" class="muted"></span>
+        <button id="video-close" class="icon-btn" data-i18n-title="dialog.close"><svg class="icon"><use href="#i-close"/></svg></button>
+      </div>
+      <div class="modal-body">
+        <video id="video-preview" class="video-preview" controls playsinline muted preload="auto"></video>
+        <fieldset id="video-controls" class="video-controls">
+          <div class="trim">
+            <label class="field grow"><span data-i18n="video.start"></span><input type="range" id="trim-start" min="0" step="0.1" /><output id="trim-start-label" class="time"></output></label>
+            <button id="trim-set-start" class="text-btn" data-shortcut="videoSetStart" data-i18n="video.setStart"></button>
+          </div>
+          <div class="trim">
+            <label class="field grow"><span data-i18n="video.end"></span><input type="range" id="trim-end" min="0" step="0.1" /><output id="trim-end-label" class="time"></output></label>
+            <button id="trim-set-end" class="text-btn" data-shortcut="videoSetEnd" data-i18n="video.setEnd"></button>
+          </div>
+          <div class="form-row">
+            <label class="field"><span data-i18n="video.format"></span><select id="video-format"></select></label>
+            <label class="field" data-for-format="encode"><span data-i18n="video.size"></span><select id="video-size"></select></label>
+            <label class="field" data-for-format="encode"><span data-i18n="video.fps"></span><select id="video-fps"></select></label>
+            <label class="field" data-for-format="video"><span data-i18n="video.quality"></span><select id="video-quality"></select></label>
+          </div>
+          <p id="video-estimate" class="note"></p>
+        </fieldset>
+        <div id="video-progress-row" class="progress-row" hidden>
+          <progress id="video-progress" max="1" value="0"></progress>
+          <span id="video-progress-label" class="muted"></span>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button id="video-frame" class="text-btn" data-shortcut="videoAddFrame" data-i18n="video.addFrame"></button>
+        <span class="spacer"></span>
+        <button id="video-cancel" data-i18n="video.cancel" hidden></button>
+        <button id="video-save" class="primary" data-shortcut="videoSave" data-i18n-title="video.saveTitle"><svg class="icon"><use href="#i-download"/></svg> <span data-i18n="video.save"></span></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings: keyboard shortcuts (rows are built by shortcut-settings.js). -->
+  <div id="settings-dialog" class="modal" role="dialog" aria-modal="true" aria-labelledby="settings-title" hidden>
+    <div class="modal-card wide">
+      <div class="modal-head">
+        <h2 id="settings-title" data-i18n="settings.title"></h2>
+        <button id="settings-close" class="icon-btn" data-i18n-title="dialog.close"><svg class="icon"><use href="#i-close"/></svg></button>
+      </div>
+      <div class="modal-body">
+        <h3 data-i18n="settings.shortcuts"></h3>
+        <p class="note" data-i18n="settings.hint"></p>
+        <div id="shortcut-list" class="shortcut-list"></div>
+        <h3 class="sc-fixed-title" data-i18n="settings.fixed"></h3>
+        <dl id="fixed-shortcuts" class="fixed-list"></dl>
+      </div>
+      <div class="modal-foot">
+        <button id="shortcuts-reset-all" data-i18n="settings.resetAll"></button>
+        <span class="spacer"></span>
+        <button id="settings-done" class="primary" data-i18n="dialog.close"></button>
+      </div>
+    </div>
+  </div>
+
+  <input id="file-input" type="file" accept="image/*,video/*" multiple hidden />
   <script src="version.js"></script>
   <script src="i18n.js"></script>
   <script src="keys.js"></script>
+  <script src="shortcuts.js"></script>
+  <script src="video-options.js"></script>
+  <script src="gif-encoder.js"></script>
+  <script src="webm-duration.js"></script>
   <script src="scene.js"></script>
   <script src="draw.js"></script>
   <script src="app.js"></script>
@@ -148,6 +257,10 @@
   <script src="scene-actions.js"></script>
   <script src="export.js"></script>
   <script src="region.js"></script>
+  <script src="shortcut-settings.js"></script>
+  <script src="mediabunny.min.js"></script>
+  <script src="video-editor.js"></script>
+  <script src="recorder.js"></script>
   <script src="pointer.js"></script>
   <script src="input.js"></script>
   <script src="clipboard-history.js"></script>

@@ -1,6 +1,7 @@
 'use strict';
 
-// Export: flatten images + annotations into one PNG at native resolution (save or copy).
+// Export: flatten images + annotations into one PNG at native resolution (save or copy), plus the
+// file-download helper the video editor uses too.
 (() => {
   const { state: S, toast } = App;
 
@@ -21,6 +22,21 @@
     c.toBlob((blob) => (blob ? resolve(blob) : reject(new Error('toBlob failed'))), 'image/png');
   });
 
+  /** "2026-11-02T10-15-30", for file names. */
+  const fileStamp = () => new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+
+  /** Saves `blob` as a file (browser download; Electron shows a save dialog). */
+  function downloadBlob(blob, filename) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 10000);
+  }
+
   async function savePng() {
     App.commitText();
     if (S.items.length === 0 && S.annotations.length === 0) {
@@ -28,16 +44,7 @@
       return;
     }
     try {
-      const blob = await toPngBlob(composeCanvas(S.items, S.annotations));
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-      a.href = url;
-      a.download = `zcreenshot-${stamp}.png`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      setTimeout(() => URL.revokeObjectURL(url), 10000);
+      downloadBlob(await toPngBlob(composeCanvas(S.items, S.annotations)), `zcreenshot-${fileStamp()}.png`);
     } catch (err) {
       console.error(err);
       toast('toast.saveFailed');
@@ -82,5 +89,7 @@
     }
   }
 
-  Object.assign(App, { composeCanvas, toPngBlob, savePng, copyImage, copyAll });
+  Object.assign(App, {
+    composeCanvas, toPngBlob, fileStamp, downloadBlob, savePng, copyImage, copyAll,
+  });
 })();

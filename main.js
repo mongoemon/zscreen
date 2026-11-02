@@ -4,9 +4,10 @@ const {
 const path = require('path');
 const I18n = require('./i18n.js');
 const { createHistoryService } = require('./history-service.js');
+const { createCaptureService } = require('./capture-service.js');
+const { createGlobalShortcuts } = require('./global-shortcuts.js');
 
 const ICON_PATH = path.join(__dirname, 'build', 'icon.png');
-const PASTE_SHORTCUT = 'CommandOrControl+Shift+V';
 
 /** @type {BrowserWindow | null} */
 let win = null;
@@ -39,6 +40,9 @@ function createWindow() {
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true,
+      // no spell check: on Windows/Linux it would download dictionaries from Google's servers,
+      // and the app makes no network connections of its own (see the README privacy section)
+      spellcheck: false,
     },
   });
 
@@ -88,14 +92,59 @@ const clipboardHistory = createHistoryService({
     showWindow();
     send('clipboard-image', png);
   },
-  onVisibleChange: () => { if (tray) tray.setContextMenu(buildTrayMenu()); }, // keep the checkbox in sync
+  onVisibleChange: () => refreshTray(), // keep the checkbox in sync
 });
+
+// Screen recording: the editor records; this process lists sources and offers ways to stop while
+// the window is hidden (tray click, tray menu, global shortcut).
+const screenCapture = createCaptureService({
+  getWindow: () => win,
+  onRecordingChange: (recording, { hideWindow }) => {
+    if (win) win.webContents.setBackgroundThrottling(!recording); // keep recording while hidden
+    if (recording) {
+      if (hideWindow && win) win.hide();
+    } else {
+      showWindow(); // the recording opens in the video editor
+    }
+    refreshTray();
+  },
+});
+
+function openRecorder() {
+  showWindow();
+  send('capture:open');
+}
+
+/** Record shortcut: opens the record dialog, starts recording when it is open, stops when recording. */
+function toggleRecording() {
+  if (screenCapture.isRecording()) {
+    screenCapture.requestStop();
+    return;
+  }
+  showWindow();
+  send('capture:toggle');
+}
+
+// System-wide shortcuts; the user can change them in the editor's settings dialog.
+const globalShortcuts = createGlobalShortcuts({
+  handlers: { globalPaste: pasteFromClipboard, record: toggleRecording },
+  getWebContents: () => (win ? win.webContents : null),
+  onChange: () => refreshTray(),
+});
+
+function onTrayClick() {
+  if (screenCapture.isRecording()) screenCapture.requestStop();
+  else showWindow();
+}
 
 function buildTrayMenu() {
   const loginEnabled = app.getLoginItemSettings().openAtLogin;
   return Menu.buildFromTemplate([
-    { label: I18n.t('tray.paste'), accelerator: PASTE_SHORTCUT, click: pasteFromClipboard },
+    { label: I18n.t('tray.paste'), accelerator: globalShortcuts.accelerator('globalPaste'), click: pasteFromClipboard },
     { label: I18n.t('tray.open'), click: showWindow },
+    screenCapture.isRecording()
+      ? { label: I18n.t('tray.stopRecording'), accelerator: globalShortcuts.accelerator('record'), click: screenCapture.requestStop }
+      : { label: I18n.t('tray.record'), accelerator: globalShortcuts.accelerator('record'), click: openRecorder },
     {
       label: I18n.t('tray.history'),
       type: 'checkbox',
@@ -109,7 +158,7 @@ function buildTrayMenu() {
       checked: loginEnabled,
       click: (item) => {
         app.setLoginItemSettings({ openAtLogin: item.checked });
-        tray.setContextMenu(buildTrayMenu());
+        refreshTray();
       },
     },
     { type: 'separator' },
@@ -117,13 +166,19 @@ function buildTrayMenu() {
   ]);
 }
 
+/** Menu and tooltip show the current shortcuts and recording state. */
+function refreshTray() {
+  if (!tray) return;
+  const pasteKey = globalShortcuts.label('globalPaste');
+  tray.setToolTip(pasteKey ? I18n.t('tray.tooltip', { shortcut: pasteKey }) : 'Zcreenshot');
+  tray.setContextMenu(buildTrayMenu());
+}
+
 function createTray() {
   const icon = nativeImage.createFromPath(ICON_PATH).resize({ width: 16, height: 16 });
   tray = new Tray(icon);
-  const modifier = process.platform === 'darwin' ? 'Cmd' : 'Ctrl';
-  tray.setToolTip(I18n.t('tray.tooltip', { shortcut: `${modifier}+Shift+V` }));
-  tray.setContextMenu(buildTrayMenu());
-  tray.on('click', showWindow);
+  refreshTray();
+  tray.on('click', onTrayClick);
 }
 
 // Only one instance: launching again just brings the existing window forward.
@@ -134,12 +189,11 @@ if (!app.requestSingleInstanceLock()) {
 
   app.whenReady().then(() => {
     I18n.setLocale(I18n.resolveLocale([app.getLocale()])); // tray follows the OS language
+    globalShortcuts.start();
     createWindow();
     createTray();
     clipboardHistory.start();
-    if (!globalShortcut.register(PASTE_SHORTCUT, pasteFromClipboard)) {
-      console.warn(`Global shortcut ${PASTE_SHORTCUT} is already taken`);
-    }
+    screenCapture.start();
     app.on('activate', showWindow);
   });
 

@@ -17,6 +17,30 @@
   /** @type {readonly Release[]} newest first */
   const CHANGELOG = Object.freeze([
     Object.freeze({
+      version: '1.1.0',
+      date: '2026-11-02',
+      changes: Object.freeze({
+        th: Object.freeze([
+          'บันทึกหน้าจอเป็นวิดีโอ: เลือกขนาดวิดีโอและเฟรมเรต แล้วเลือกบันทึกทั้งหน้าจอหรือเฉพาะหน้าต่าง',
+          'หน้าแก้ไขวิดีโอ: ตัดช่วงต้น/ท้าย แล้วบันทึกเป็น GIF, วิดีโอขนาดเล็ก/บิตเรตต่ำ (MP4/WebM) หรือไฟล์ต้นฉบับ',
+          'เพิ่มเฟรมจากวิดีโอลงในแคนวาสเป็นรูปได้',
+          'ลากไฟล์วิดีโอมาวางเพื่อแปลงเป็น GIF ได้',
+          'บันทึกเป็น MP4/WebM เร็วขึ้นมาก (แปลงด้วย WebCodecs)',
+          'ปุ่มตั้งค่าปุ่มลัด: เปลี่ยนปุ่มลัดของหน้าแก้ไขรูป เครื่องมือวาด หน้าแก้ไขวิดีโอ และปุ่มลัดทั้งระบบได้ พร้อมปุ่มคืนค่าเริ่มต้น',
+          'ปุ่มลัดใหม่: เปิดการตั้งค่า, เลือกไฟล์, คัดลอกทุกรูป, ประวัติคลิปบอร์ด และปุ่มลัดในหน้าแก้ไขวิดีโอ (เล่น, ตั้งจุดเริ่ม/จบ, เลื่อนทีละเฟรม, บันทึก, เพิ่มเฟรม)',
+        ]),
+        en: Object.freeze([
+          'Screen recording: pick the video size and frame rate, then record the whole screen or one window',
+          'Video editor: trim the start/end and save as GIF, a small / low-bitrate video (MP4/WebM), or the original',
+          'Add a video frame to the canvas as an image',
+          'Drop a video file to turn it into a GIF',
+          'Much faster MP4/WebM saving (converted with WebCodecs)',
+          'Shortcut settings: change the keys of the image editor, drawing tools, video editor and the system-wide shortcuts, with a button to restore the defaults',
+          'New shortcuts: open settings, add files, copy every image, clipboard history, and video-editor keys (play, set start/end, step frames, save, add frame)',
+        ]),
+      }),
+    }),
+    Object.freeze({
       version: '1.0.0',
       date: '2026-10-29',
       changes: Object.freeze({
