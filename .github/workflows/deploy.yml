@@ -15,6 +15,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+      # a failing test stops here: nothing is deployed or released
+      - run: npm test
       - run: node scripts/make-icon.js && node scripts/build-web.js
       - name: Ensure Pages project
         run: npx wrangler@4 pages project create zscreen --production-branch=main || true
