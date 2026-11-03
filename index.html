@@ -36,7 +36,8 @@
     <symbol id="i-history"viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></symbol>
     <symbol id="i-scroll" viewBox="0 0 24 24"><rect x="3" y="2" width="12" height="16" rx="2"/><path d="M7 7h4"/><path d="M7 11h4"/><path d="M20 9v11"/><path d="m17 17 3 3 3-3"/></symbol>
     <symbol id="i-video" viewBox="0 0 24 24"><path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5"/><rect x="2" y="6" width="14" height="12" rx="2"/></symbol>
-    <symbol id="i-stop" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="1.5"/></symbol>
+    <symbol id="i-mic" viewBox="0 0 24 24"><path d="M12 19v3"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><rect x="9" y="2" width="6" height="13" rx="3"/></symbol>
+    <symbol id="i-stop"viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="1.5"/></symbol>
     <symbol id="i-settings" viewBox="0 0 24 24"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></symbol>
     <symbol id="i-file-plus" viewBox="0 0 24 24"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M9 15h6"/><path d="M12 18v-6"/></symbol>
     <symbol id="i-rotate" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></symbol>
@@ -63,17 +64,18 @@
     <button id="btn-open" data-shortcut="openFiles" class="icon-btn" data-i18n-title="btn.open"><svg class="icon"><use href="#i-image-plus"/></svg></button>
     <button id="btn-history" data-shortcut="toggleHistory" class="icon-btn" data-i18n-title="btn.history" aria-pressed="false" hidden><svg class="icon"><use href="#i-history"/></svg></button>
     <span class="sep"></span>
-    <!-- Capture: take something new from the screen (kept apart from the editing buttons) -->
-    <div class="tb-group" role="group" data-i18n-aria="group.capture">
-      <button id="btn-record" data-shortcut="record" class="icon-btn" data-i18n-title="btn.record" aria-haspopup="dialog"><svg class="icon"><use href="#i-video"/></svg></button>
-      <button id="btn-scroll" data-shortcut="scrollCapture" class="icon-btn" data-i18n-title="btn.scrollCapture" aria-haspopup="dialog"><svg class="icon"><use href="#i-scroll"/></svg></button>
-    </div>
-    <span class="sep"></span>
     <button id="btn-arrange" data-shortcut="arrange" class="icon-btn" data-i18n-title="btn.arrange"><svg class="icon"><use href="#i-stack"/></svg></button>
     <button id="btn-fit" data-shortcut="fit" class="icon-btn" data-i18n-title="btn.fit"><svg class="icon"><use href="#i-fit"/></svg></button>
     <button id="btn-undo" data-shortcut="undo" class="icon-btn" data-i18n-title="btn.undo"><svg class="icon"><use href="#i-undo"/></svg></button>
     <button id="btn-delete" data-shortcut="deleteSelected" class="icon-btn" data-i18n-title="btn.delete"><svg class="icon"><use href="#i-trash"/></svg></button>
     <button id="btn-clear" data-shortcut="clearAll" class="icon-btn" data-i18n-title="btn.clear"><svg class="icon"><use href="#i-eraser"/></svg></button>
+    <span class="spacer"></span>
+    <!-- Capture: take something new from the screen, centred in the bar (kept apart from the editing buttons) -->
+    <div class="tb-group tb-capture" role="group" data-i18n-aria="group.capture">
+      <button id="btn-record" data-shortcut="record" class="icon-btn" data-i18n-title="btn.record" aria-haspopup="dialog"><svg class="icon"><use href="#i-video"/></svg></button>
+      <button id="btn-record-audio" class="icon-btn" data-i18n-title="btn.recordAudio"><svg class="icon"><use href="#i-mic"/></svg></button>
+      <button id="btn-scroll" data-shortcut="scrollCapture" class="icon-btn" data-i18n-title="btn.scrollCapture" aria-haspopup="dialog"><svg class="icon"><use href="#i-scroll"/></svg></button>
+    </div>
     <span class="spacer"></span>
     <button id="btn-settings" class="icon-btn" data-shortcut="settings" data-i18n-title="btn.settings" aria-haspopup="dialog"><svg class="icon"><use href="#i-settings"/></svg></button>
     <label class="ctl lang">

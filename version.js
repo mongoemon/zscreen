@@ -17,6 +17,22 @@
   /** @type {readonly Release[]} newest first */
   const CHANGELOG = Object.freeze([
     Object.freeze({
+      version: '1.5.0',
+      date: '2026-11-03',
+      changes: Object.freeze({
+        th: Object.freeze([
+          'ปุ่มบันทึกเสียงไมโครโฟนอย่างเดียว: กดเพื่อเริ่ม กดอีกครั้งเพื่อหยุด แล้วบันทึกเป็น MP3 ทันที',
+          'ย้ายปุ่มจับภาพ (บันทึกหน้าจอ, บันทึกเสียง, จับภาพแบบเลื่อน) ไปไว้กลางแถบเครื่องมือ',
+          'จับภาพแบบเลื่อนบน Desktop: แถบบันทึกไม่ติดเข้าไปในภาพ',
+        ]),
+        en: Object.freeze([
+          'Microphone-only recording button: click to start, click again to stop, and it saves as MP3 right away',
+          'The capture buttons (screen recording, audio recording, scrolling screenshot) now sit in the middle of the toolbar',
+          'Scrolling screenshot on desktop: the recording bar no longer ends up in the image',
+        ]),
+      }),
+    }),
+    Object.freeze({
       version: '1.4.0',
       date: '2026-11-03',
       changes: Object.freeze({

@@ -32,7 +32,7 @@ function screenPermission() {
 /**
  * @param {{
  *   getWindow: () => (import('electron').BrowserWindow | null),
- *   onRecordingChange?: (recording: boolean, options: {hideWindow: boolean}) => void,
+ *   onRecordingChange?: (recording: boolean, options: {hideWindow: boolean, excludeWindow: boolean}) => void,
  * }} options getWindow returns the editor window (null while there is none)
  */
 function createCaptureService({ getWindow, onRecordingChange = () => {} }) {
@@ -94,7 +94,10 @@ function createCaptureService({ getWindow, onRecordingChange = () => {} }) {
     });
     ipcMain.on(CH.recording, (event, next, options) => {
       if (!isFromEditor(event) || typeof next !== 'boolean') return;
-      setRecording(next, { hideWindow: !!(options && options.hideWindow) });
+      setRecording(next, {
+        hideWindow: !!(options && options.hideWindow),
+        excludeWindow: !!(options && options.excludeWindow),
+      });
     });
 
     session.defaultSession.setDisplayMediaRequestHandler((request, callback) => {

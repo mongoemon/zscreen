@@ -65,6 +65,12 @@ body { display: flex; flex-direction: column; }
 /* capture buttons (record video, scrolling screenshot) sit together on a faint tray */
 .tb-group { display: flex; align-items: center; gap: 2px; padding: 2px; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; }
 .spacer { flex: 1; }
+/* Wide windows: pin the capture group to the exact centre of the bar. Narrower ones keep it
+   between the two spacers so it can't overlap the side buttons. */
+@media (min-width: 1100px) {
+  .toolbar { position: relative; }
+  .tb-capture { position: absolute; left: 50%; transform: translateX(-50%); }
+}
 .zoom { color: var(--muted); font-variant-numeric: tabular-nums; min-width: 48px; text-align: right; }
 
 button {

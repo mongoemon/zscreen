@@ -401,6 +401,36 @@
   }
 
   /**
+   * A sound-only recording in the best audio format this browser can write (MP3 first), or as
+   * recorded when none can be written.
+   * @returns {Promise<{blob: Blob, extension: string}>}
+   */
+  async function convertAudio(blob) {
+    const [format] = await audioFormatsReady;
+    if (format) {
+      const spec = AUDIO_FORMATS[format];
+      const input = new MB.Input({ source: new MB.BlobSource(blob), formats: MB.ALL_FORMATS });
+      try {
+        const output = new MB.Output({ format: spec.output(), target: new MB.BufferTarget() });
+        const conversion = await MB.Conversion.init({
+          input,
+          output,
+          audio: { codec: spec.codec, forceTranscode: true, ...(spec.fixedBitrate ? {} : { bitrate: V.DEFAULTS.audioBitrate }) },
+          showWarnings: false,
+        });
+        if (!conversion.isValid) throw new Error(`cannot write ${format} audio`);
+        await conversion.execute();
+        return { blob: new Blob([output.target.buffer], { type: spec.mime }), extension: format };
+      } catch (err) {
+        console.warn('audio conversion failed; saving as recorded', err);
+      } finally {
+        input.dispose();
+      }
+    }
+    return { blob, extension: blob.type.startsWith('audio/mp4') ? 'm4a' : 'webm' };
+  }
+
+  /**
    * Fast path: Mediabunny reads the file, WebCodecs decodes / scales / re-encodes it as fast as the
    * machine allows, and the result is written as a proper MP4 / WebM (with duration and seek index).
    * @returns {Promise<Blob|null>} null when this browser cannot encode the format (or its sound) this way
@@ -643,5 +673,7 @@
   });
   I18n.subscribe(relabel);
 
-  Object.assign(App, { openVideoEditor, closeVideoEditor, isVideoEditorOpen });
+  Object.assign(App, {
+    openVideoEditor, closeVideoEditor, isVideoEditorOpen, convertAudio,
+  });
 })();

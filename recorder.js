@@ -10,6 +10,7 @@
   const { $, toast } = App;
   const capture = window.zcreenshot && window.zcreenshot.capture;
   const recordButton = $('btn-record');
+  const audioButton = $('btn-record-audio');
   const scrollButton = $('btn-scroll');
   const canRecord = !!(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia && window.MediaRecorder);
   if (!canRecord) {
@@ -56,12 +57,15 @@
       hint: Object.freeze({ web: 'scroll.stopHintWeb', desktop: 'scroll.stopHintDesktop', desktopNoKey: 'scroll.stopHintDesktopNoKey' }),
     }),
   });
+  // sound only: no dialog, so just the bar's texts (the record shortcut stops it too)
+  const AUDIO_BAR = Object.freeze({ label: 'rec.audioLabel', stopTitle: 'rec.stopTitle', shortcut: 'record' });
+  const AUDIO_MIME_TYPES = Object.freeze(['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4']);
   const LOST_HINT_MS = 1500; // how long "scroll slower" stays up after the page was lost
 
   let sources = [];
   let chosenId = null;
   let mode = 'video';
-  // while capturing: video {kind, stream, recorder, chunks, startedAt, timer, release};
+  // while capturing: video / audio {kind, stream, recorder, chunks, startedAt, timer, release};
   // scroll {kind, stream, capture, lostAt, height, stopping}
   let session = null;
 
@@ -232,17 +236,23 @@
   }
 
   function showBar() {
-    closeRecordDialog();
+    if (!dialog.hidden) closeRecordDialog();
     bar.hidden = false;
     recordButton.disabled = true;
     scrollButton.disabled = true;
-    if (capture) capture.setRecording(true, { hideWindow: hideCheckbox.checked });
+    audioButton.disabled = true;
+    // there is nothing on screen to keep the window out of when recording sound only
+    const hideWindow = session.kind !== 'audio' && hideCheckbox.checked;
+    // the bar stays readable during a scrolling screenshot, but must not be stitched into the image
+    const excludeWindow = session.kind === 'scroll';
+    if (capture) capture.setRecording(true, { hideWindow, excludeWindow });
   }
 
   function hideBar() {
     bar.hidden = true;
     recordButton.disabled = false;
     scrollButton.disabled = false;
+    audioButton.disabled = false;
     timeEl.classList.remove('warn');
     if (capture) capture.setRecording(false);
   }
@@ -293,16 +303,57 @@
   }
 
   // ---------- recording ----------
-  /** The microphone as a stream, or null (a refusal or failure shows a toast; recording goes on). */
-  async function openMicrophone() {
+  /** The microphone as a stream, or null (a refusal or failure shows `failKey`). */
+  async function openMicrophone(failKey = 'toast.micFailed') {
     try {
       if (capture && !(await capture.askMicrophone())) throw new Error('microphone access denied');
       return await navigator.mediaDevices.getUserMedia({ audio: true });
     } catch (err) {
       console.warn('could not open the microphone', err);
-      toast('toast.micFailed');
+      toast(failKey);
       return null;
     }
+  }
+
+  /** Starts the recorder of a video / audio session: chunks, the bar's clock, then the bar. */
+  function runRecorder(current) {
+    session = current;
+    current.recorder.addEventListener('dataavailable', (e) => { if (e.data.size > 0) current.chunks.push(e.data); });
+    current.recorder.addEventListener('stop', () => finishRecording(current));
+    current.recorder.start(1000);
+    current.startedAt = performance.now();
+    timeEl.textContent = VideoOptions.formatTime(0);
+    current.timer = setInterval(() => {
+      timeEl.textContent = VideoOptions.formatTime((performance.now() - current.startedAt) / 1000);
+    }, TICK_MS);
+    showBar();
+  }
+
+  /** Sound only, from the microphone: starts at once, and is saved as MP3 (or M4A) when stopped. */
+  async function startAudioRecording() {
+    if (session || App.isVideoEditorOpen()) return;
+    const mic = await openMicrophone('toast.audioFailed');
+    if (!mic || session) {
+      if (mic) mic.getTracks().forEach((t) => t.stop());
+      return;
+    }
+    const mimeType = AUDIO_MIME_TYPES.find((m) => MediaRecorder.isTypeSupported(m));
+    let recorder;
+    try {
+      recorder = new MediaRecorder(mic, mimeType ? { mimeType } : {});
+    } catch (err) {
+      console.error('MediaRecorder failed', err);
+      mic.getTracks().forEach((t) => t.stop());
+      toast('toast.audioFailed');
+      return;
+    }
+    setText($('rec-label'), AUDIO_BAR.label);
+    setTitle(stopButton, AUDIO_BAR.stopTitle, AUDIO_BAR.shortcut);
+    mic.getAudioTracks()[0].addEventListener('ended', stopRecording); // microphone unplugged
+    runRecorder({
+      kind: 'audio', stream: mic, recorder, chunks: [], startedAt: 0, timer: null,
+      release: () => mic.getTracks().forEach((t) => t.stop()),
+    });
   }
 
   /**
@@ -365,26 +416,15 @@
       return;
     }
 
-    const current = {
+    track.addEventListener('ended', stopRecording); // browser "Stop sharing", or the window was closed
+    runRecorder({
       kind: 'video', stream, recorder, chunks: [], startedAt: 0, timer: null,
       release: () => {
         stopInputs();
         stream.getTracks().forEach((t) => t.stop());
         if (audio.context) audio.context.close();
       },
-    };
-    session = current;
-    recorder.addEventListener('dataavailable', (e) => { if (e.data.size > 0) current.chunks.push(e.data); });
-    recorder.addEventListener('stop', () => finishRecording(current));
-    track.addEventListener('ended', stopRecording); // browser "Stop sharing", or the window was closed
-
-    recorder.start(1000);
-    current.startedAt = performance.now();
-    timeEl.textContent = VideoOptions.formatTime(0);
-    current.timer = setInterval(() => {
-      timeEl.textContent = VideoOptions.formatTime((performance.now() - current.startedAt) / 1000);
-    }, TICK_MS);
-    showBar();
+    });
   }
 
   /** Stops whichever capture is running (video or scrolling screenshot). */
@@ -405,15 +445,22 @@
     session = null;
     hideBar();
 
-    const type = current.recorder.mimeType || (current.chunks[0] && current.chunks[0].type) || 'video/webm';
+    const fallbackType = current.kind === 'audio' ? 'audio/webm' : 'video/webm';
+    const type = current.recorder.mimeType || (current.chunks[0] && current.chunks[0].type) || fallbackType;
     let blob = new Blob(current.chunks, { type });
     if (blob.size === 0) {
       toast('toast.recordEmpty');
       return;
     }
-    if (VideoOptions.extensionFor(type) === 'webm') {
+    if (/^(audio|video)\/webm/.test(type)) {
       const bytes = new Uint8Array(await blob.arrayBuffer());
       blob = new Blob([WebmDuration.withDuration(bytes, durationMs)], { type });
+    }
+    if (current.kind === 'audio') {
+      const file = await App.convertAudio(blob);
+      App.downloadBlob(file.blob, `zcreenshot-${App.fileStamp()}.${file.extension}`);
+      toast('toast.videoSaved', { size: VideoOptions.formatBytes(file.blob.size) });
+      return;
     }
     App.openVideoEditor(blob, { durationMs });
   }
@@ -436,6 +483,8 @@
 
   // ---------- wiring ----------
   recordButton.addEventListener('click', () => openRecordDialog('video'));
+  audioButton.addEventListener('click', startAudioRecording);
+  audioButton.hidden = !navigator.mediaDevices.getUserMedia;
   scrollButton.addEventListener('click', () => openRecordDialog('scroll'));
   $('record-close').addEventListener('click', closeRecordDialog);
   $('record-refresh').addEventListener('click', loadSources);

@@ -105,8 +105,12 @@ const clipboardHistory = createHistoryService({
 // the window is hidden (tray click, tray menu, global shortcut).
 const screenCapture = createCaptureService({
   getWindow: () => win,
-  onRecordingChange: (recording, { hideWindow }) => {
-    if (win) win.webContents.setBackgroundThrottling(!recording); // keep recording while hidden
+  onRecordingChange: (recording, { hideWindow, excludeWindow } = {}) => {
+    if (win) {
+      win.webContents.setBackgroundThrottling(!recording); // keep recording while hidden
+      // keep the window (and its recording bar) out of the captured frames (macOS / Windows)
+      win.setContentProtection(recording && !!excludeWindow);
+    }
     if (recording) {
       if (hideWindow && win) win.hide();
     } else {
