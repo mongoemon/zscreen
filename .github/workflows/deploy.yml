@@ -3,10 +3,65 @@ name: Deploy to Cloudflare Pages
 on:
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 jobs:
+  # Unit tests + an Allure report as one self-contained index.html: attached to the run as the
+  # "allure-report" artifact, and (for main) published to GitHub Pages.
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Unit tests
+        id: tests
+        continue-on-error: true # build the report first; the last step fails the job
+        run: npm run test:report
+      - name: Allure report
+        if: always()
+        run: npm run report
+        env:
+          ALLURE_NO_ANALYTICS: 'true'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: allure-report
+          path: allure-report/index.html
+      - uses: actions/upload-pages-artifact@v3
+        if: always() && github.event_name != 'pull_request'
+        with:
+          path: allure-report
+      - name: Summary
+        if: always()
+        run: |
+          node -e "const {stats: s} = require('./allure-report/summary.json'); console.log('### Unit tests: ' + (s.passed || 0) + ' / ' + s.total + ' passed')" >> "$GITHUB_STEP_SUMMARY"
+          echo "Allure report: https://${GITHUB_REPOSITORY_OWNER}.github.io/${GITHUB_REPOSITORY#*/}/ (or the allure-report artifact of this run)" >> "$GITHUB_STEP_SUMMARY"
+      - name: Fail on test failures
+        if: steps.tests.outcome == 'failure'
+        run: exit 1
+
+  report:
+    needs: test
+    if: ${{ !cancelled() && github.event_name != 'pull_request' }}
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.pages.outputs.page_url }}
+    steps:
+      - id: pages
+        uses: actions/deploy-pages@v4
+
+  # only after the tests pass: nothing is deployed or released otherwise
   deploy:
+    needs: test
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     permissions:
       contents: write # create the GitHub release
@@ -15,8 +70,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      # a failing test stops here: nothing is deployed or released
-      - run: npm test
       - run: node scripts/make-icon.js && node scripts/build-web.js
       - name: Ensure Pages project
         run: npx wrangler@4 pages project create zscreen --production-branch=main || true

@@ -6,6 +6,8 @@
   "scripts": {
     "start": "electron .",
     "test": "node --test",
+    "test:report": "node --test --test-reporter=spec --test-reporter-destination=stdout --test-reporter=./scripts/allure-reporter.js --test-reporter-destination=stdout",
+    "report": "npx -y allure@3.22.1 generate allure-results",
     "icon": "node scripts/make-icon.js",
     "build:web": "node scripts/make-icon.js && node scripts/build-web.js",
     "serve:web": "node scripts/serve-web.js",

@@ -279,11 +279,14 @@ Web เก็บค่าไว้ในเบราว์เซอร์ (local
 |--------|---------|
 | `npm start` | รันแอป Electron |
 | `npm test` | รันเทสต์ (`node --test`) |
+| `npm run test:report` แล้ว `npm run report` | รันเทสต์แล้วสร้าง Allure report เป็นไฟล์เดียว `allure-report/index.html` (ใส่ `ALLURE_NO_ANALYTICS=true` ด้วย เพื่อไม่ให้รายงานมี Google Analytics) |
 | `npm run icon` | สร้างไอคอนใน `build/` |
 | `npm run build:web` | สร้างโฟลเดอร์ `web/` สำหรับ PWA |
 | `npm run serve:web` | เซิร์ฟเวอร์ทดสอบ PWA ที่ `localhost:5173` |
 | `npm run dist:win` | สร้างตัวติดตั้ง Windows (NSIS + Portable) ลง `dist/` |
 | `npm run dist:mac` | สร้าง `.dmg` สำหรับ macOS (ต้อง build บนเครื่อง Mac) |
+
+**CI** (`.github/workflows/deploy.yml`): ทุก push / pull request รันเทสต์และสร้าง Allure report ดูได้ที่ https://mongoemon.github.io/zscreen/ (ของ `main` ล่าสุด) หรือโหลดไฟล์ `allure-report` จากหน้า run ใน Actions · ถ้าเทสต์ไม่ผ่านจะไม่ deploy และไม่ออก release
 
 ### โครงสร้างโปรเจกต์
 
