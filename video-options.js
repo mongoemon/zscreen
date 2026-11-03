@@ -15,11 +15,14 @@
   const SIZES = Object.freeze([0, 1080, 720, 480, 360, 240]);
   const RECORD_FPS = Object.freeze([15, 30, 60]);
   const EXPORT_FPS = Object.freeze([5, 10, 15, 24, 30]);
+  /** Bits per second offered for audio-only MP3 / M4A (both encoders accept 64-320 kbps). */
+  const AUDIO_BITRATES = Object.freeze([64000, 96000, 128000, 192000, 256000, 320000]);
   const DEFAULTS = Object.freeze({
     recordSize: 0,
     recordFps: 30,
     gif: Object.freeze({ size: 480, fps: 10 }),
     video: Object.freeze({ size: 720, fps: 30, quality: 'low' }),
+    audioBitrate: 128000,
   });
 
   /** Bits per pixel per frame. "low" is aimed at small files that still read fine for UI recordings. */
@@ -34,6 +37,11 @@
   const MIME_CANDIDATES = Object.freeze({
     mp4: Object.freeze(['video/mp4;codecs=avc1.42E01F', 'video/mp4;codecs=avc1', 'video/mp4']),
     webm: Object.freeze(['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm']),
+  });
+  /** The same with an audio codec, for streams that carry sound. */
+  const MIME_CANDIDATES_AUDIO = Object.freeze({
+    mp4: Object.freeze(['video/mp4;codecs=avc1.42E01F,mp4a.40.2', 'video/mp4;codecs=avc1,mp4a.40.2', 'video/mp4']),
+    webm: Object.freeze(['video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm']),
   });
 
   const even = (n) => Math.max(2, Math.round(n / 2) * 2);
@@ -67,17 +75,21 @@
   /**
    * @param {(mime:string) => boolean} isSupported usually MediaRecorder.isTypeSupported
    * @param {'mp4'|'webm'} container
+   * @param {boolean} [withAudio] the stream also has an audio track
    * @returns {string|null}
    */
-  function pickMimeType(isSupported, container) {
-    return (MIME_CANDIDATES[container] || []).find((m) => isSupported(m)) || null;
+  function pickMimeType(isSupported, container, withAudio = false) {
+    const candidates = (withAudio ? MIME_CANDIDATES_AUDIO : MIME_CANDIDATES)[container] || [];
+    return candidates.find((m) => isSupported(m)) || null;
   }
 
   /** Containers this browser can record, best first. */
   const supportedContainers = (isSupported) => ['mp4', 'webm'].filter((c) => pickMimeType(isSupported, c));
 
   /** MIME for raw screen recordings: WebM first (we can add its missing duration), MP4 otherwise. */
-  const recordingMimeType = (isSupported) => pickMimeType(isSupported, 'webm') || pickMimeType(isSupported, 'mp4');
+  const recordingMimeType = (isSupported, withAudio = false) => (
+    pickMimeType(isSupported, 'webm', withAudio) || pickMimeType(isSupported, 'mp4', withAudio)
+  );
 
   const extensionFor = (mime) => (String(mime).startsWith('video/mp4') ? 'mp4' : 'webm');
 
@@ -115,10 +127,12 @@
     SIZES,
     RECORD_FPS,
     EXPORT_FPS,
+    AUDIO_BITRATES,
     DEFAULTS,
     QUALITY,
     QUALITIES,
     MIME_CANDIDATES,
+    MIME_CANDIDATES_AUDIO,
     fitSize,
     sizesFor,
     bitrateFor,

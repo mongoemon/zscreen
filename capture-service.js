@@ -14,7 +14,10 @@ const CH = Object.freeze({
   select: 'capture:select',
   recording: 'capture:recording',
   stop: 'capture:stop',
+  microphone: 'capture:microphone',
 });
+/** Electron can only grant system audio ("loopback") with a screen / window on Windows. */
+const SYSTEM_AUDIO = process.platform === 'win32';
 
 /** 'granted' | 'denied' | 'restricted' | 'not-determined' | 'unknown'; only macOS asks for permission. */
 function screenPermission() {
@@ -33,7 +36,10 @@ function screenPermission() {
  * }} options getWindow returns the editor window (null while there is none)
  */
 function createCaptureService({ getWindow, onRecordingChange = () => {} }) {
-  /** @type {{id:string, name:string} | null} source picked in the record dialog, used by the next request */
+  /**
+   * Source picked in the record dialog, used by the next request; `audio` adds the system sound.
+   * @type {{id:string, name:string, audio:boolean} | null}
+   */
   let chosen = null;
   let recording = false;
 
@@ -73,8 +79,18 @@ function createCaptureService({ getWindow, onRecordingChange = () => {} }) {
     });
     ipcMain.handle(CH.select, (event, source) => {
       if (!isFromEditor(event) || !source || typeof source.id !== 'string' || typeof source.name !== 'string') return false;
-      chosen = { id: source.id, name: source.name };
+      chosen = { id: source.id, name: source.name, audio: SYSTEM_AUDIO && source.audio === true };
       return true;
+    });
+    // macOS asks the user once; elsewhere the microphone needs no system permission
+    ipcMain.handle(CH.microphone, async (event) => {
+      if (!isFromEditor(event)) return false;
+      if (process.platform !== 'darwin') return true;
+      try {
+        return await systemPreferences.askForMediaAccess('microphone');
+      } catch (err) {
+        return false;
+      }
     });
     ipcMain.on(CH.recording, (event, next, options) => {
       if (!isFromEditor(event) || typeof next !== 'boolean') return;
@@ -86,7 +102,12 @@ function createCaptureService({ getWindow, onRecordingChange = () => {} }) {
       const fromEditor = win && request.frame && request.frame === win.webContents.mainFrame;
       const source = chosen;
       chosen = null; // one pick, one recording
-      callback(fromEditor && source ? { video: source } : null);
+      if (!fromEditor || !source) {
+        callback(null);
+        return;
+      }
+      const video = { id: source.id, name: source.name };
+      callback(source.audio && request.audioRequested ? { video, audio: 'loopback' } : { video });
     });
   }
 

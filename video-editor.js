@@ -4,7 +4,9 @@
 //   - GIF (frames sampled by seeking, encoded by gif-encoder.js),
 //   - a smaller / lower-bitrate MP4 or WebM: converted with Mediabunny + WebCodecs (much faster than
 //     real time); where that is not available it falls back to playing the clip through a canvas
-//     into a MediaRecorder, which takes as long as the clip, or
+//     into a MediaRecorder, which takes as long as the clip,
+//   - the sound only (MP3 via the LAME encoder in mediabunny-mp3-encoder.min.js, M4A / AAC where
+//     the system can encode it; WAV as the last resort), or
 //   - the original recording as is.
 // "Add this frame to the canvas" puts the current frame into the screenshot editor as an image.
 (() => {
@@ -21,6 +23,9 @@
   const sizeSelect = $('video-size');
   const fpsSelect = $('video-fps');
   const qualitySelect = $('video-quality');
+  const audioCheckbox = $('video-audio');
+  const audioRow = $('video-audio-row');
+  const audioBitrateSelect = $('audio-bitrate');
   const estimate = $('video-estimate');
   const progressRow = $('video-progress-row');
   const progress = $('video-progress');
@@ -31,19 +36,75 @@
 
   const CANCELLED = new Error('export cancelled');
   const FORMAT_LABELS = Object.freeze({
-    gif: 'format.gif', mp4: 'format.mp4', webm: 'format.webm', original: 'format.original',
+    gif: 'format.gif',
+    mp4: 'format.mp4',
+    webm: 'format.webm',
+    mp3: 'format.mp3',
+    m4a: 'format.m4a',
+    wav: 'format.wav',
+    original: 'format.original',
   });
   const QUALITY_LABELS = Object.freeze({ low: 'quality.low', medium: 'quality.medium', high: 'quality.high' });
   const PROGRESS_LABELS = Object.freeze({
-    gif: 'video.progressGif', fast: 'video.progressConvert', realtime: 'video.progressVideo',
+    gif: 'video.progressGif', fast: 'video.progressConvert', realtime: 'video.progressVideo', audio: 'video.progressAudio',
   });
   /** Video codecs to try per container for the fast path, best first. */
   const FAST_CODECS = Object.freeze({ mp4: Object.freeze(['avc']), webm: Object.freeze(['vp9', 'vp8']) });
+  /** Audio codecs to prefer per container (AAC plays everywhere MP4 does, Opus in MP4 does not). */
+  const FAST_AUDIO_CODECS = Object.freeze({ mp4: Object.freeze(['aac']), webm: Object.freeze(['opus']) });
   const MB = window.Mediabunny;
   const canConvertFast = !!(MB && window.VideoEncoder && window.VideoDecoder);
   const isTypeSupported = (m) => !!window.MediaRecorder && MediaRecorder.isTypeSupported(m);
 
-  /** @type {{blob:Blob, url:string, duration:number, width:number, height:number, saved:boolean} | null} */
+  /**
+   * "Audio only" formats. Browsers have no MP3 encoder of their own, so MP3 comes from the bundled
+   * LAME build; WAV (uncompressed, so large) only where neither compressed format can be made.
+   */
+  const AUDIO_FORMATS = Object.freeze({
+    mp3: Object.freeze({
+      codec: 'mp3', mime: 'audio/mpeg', output: () => new MB.Mp3OutputFormat(),
+    }),
+    m4a: Object.freeze({
+      codec: 'aac', mime: 'audio/mp4', output: () => new MB.Mp4OutputFormat(),
+    }),
+    wav: Object.freeze({
+      // uncompressed: the bitrate is fixed (48 kHz stereo 16-bit), so no bitrate choice
+      codec: 'pcm-s16', mime: 'audio/wav', fixedBitrate: 48000 * 2 * 16, output: () => new MB.WavOutputFormat(),
+    }),
+  });
+  const isAudioFormat = (format) => Object.hasOwn(AUDIO_FORMATS, format);
+  /** Bits per second an audio-only format will be written at. */
+  const audioBitrate = (format) => AUDIO_FORMATS[format].fixedBitrate || Number(audioBitrateSelect.value);
+
+  /** Which formats each `data-for-format` field applies to. */
+  const FIELD_FORMATS = Object.freeze({
+    encode: (f) => f === 'gif' || f === 'mp4' || f === 'webm', // size, frame rate
+    video: (f) => f === 'mp4' || f === 'webm', // quality, include audio
+    audio: (f) => isAudioFormat(f) && !AUDIO_FORMATS[f].fixedBitrate, // audio bitrate
+  });
+
+  /** @type {Promise<string[]>} audio-only formats this browser can write */
+  const audioFormatsReady = (async () => {
+    if (!MB || !window.AudioDecoder) return [];
+    if (window.MediabunnyMp3Encoder) MediabunnyMp3Encoder.registerMp3Encoder(); // LAME (WASM) in a worker
+    const can = async (format) => {
+      try {
+        return await MB.canEncodeAudio(AUDIO_FORMATS[format].codec);
+      } catch (err) {
+        return false;
+      }
+    };
+    const compressed = [];
+    for (const format of ['mp3', 'm4a']) if (await can(format)) compressed.push(format);
+    if (compressed.length > 0) return compressed;
+    return (await can('wav')) ? ['wav'] : [];
+  })();
+  let audioFormats = [];
+
+  /**
+   * @type {{blob:Blob, url:string, duration:number, width:number, height:number, hasAudio:boolean,
+   *   saved:boolean} | null}
+   */
   let current = null;
   /**
    * Export in progress. `cancel` is set by the fast path, which can abort its conversion right away.
@@ -105,6 +166,7 @@
   const sizeLabel = (size) => (size === 0 ? I18n.t('size.original') : `${size}p`);
   const fpsLabel = (fps) => I18n.t('unit.fps', { fps });
   const qualityLabel = (q) => I18n.t(QUALITY_LABELS[q]);
+  const kbpsLabel = (bitsPerSecond) => I18n.t('unit.kbps', { kbps: bitsPerSecond / 1000 });
 
   function fillSelect(select, values, label, preferred) {
     select.replaceChildren(...values.map((value) => {
@@ -118,7 +180,9 @@
 
   // ---------- form ----------
   function fillFormats(preferred) {
-    const formats = ['gif', ...V.supportedContainers(isTypeSupported), 'original'];
+    const formats = [
+      'gif', ...V.supportedContainers(isTypeSupported), ...(current.hasAudio ? audioFormats : []), 'original',
+    ];
     fillSelect(formatSelect, formats, (f) => I18n.t(FORMAT_LABELS[f]), preferred);
   }
 
@@ -130,19 +194,23 @@
     fillSelect(sizeSelect, V.sizesFor(current.width, current.height), sizeLabel, defaults.size);
     fillSelect(fpsSelect, V.EXPORT_FPS, fpsLabel, defaults.fps);
     fillSelect(qualitySelect, V.QUALITIES, qualityLabel, qualitySelect.value || V.DEFAULTS.video.quality);
+    fillSelect(audioBitrateSelect, V.AUDIO_BITRATES, kbpsLabel, Number(audioBitrateSelect.value) || V.DEFAULTS.audioBitrate);
     dialog.querySelectorAll('[data-for-format]').forEach((el) => {
-      el.hidden = format === 'original' || (el.dataset.forFormat === 'video' && format === 'gif');
+      el.hidden = !FIELD_FORMATS[el.dataset.forFormat](format);
     });
+    if (!current.hasAudio) audioRow.hidden = true;
     updateSummary();
   }
 
   function relabel() { // language changed: rebuild the option labels, keep the values
     if (!current) return;
-    const [format, size, fps, quality] = [formatSelect, sizeSelect, fpsSelect, qualitySelect].map((s) => s.value);
+    const [format, size, fps, quality, kbps] = [formatSelect, sizeSelect, fpsSelect, qualitySelect, audioBitrateSelect]
+      .map((s) => s.value);
     fillFormats(format);
     fillSelect(sizeSelect, V.sizesFor(current.width, current.height), sizeLabel, Number(size));
     fillSelect(fpsSelect, V.EXPORT_FPS, fpsLabel, Number(fps));
     fillSelect(qualitySelect, V.QUALITIES, qualityLabel, quality);
+    fillSelect(audioBitrateSelect, V.AUDIO_BITRATES, kbpsLabel, Number(kbps));
     updateSummary();
   }
 
@@ -159,6 +227,9 @@
       estimate.textContent = I18n.t('video.summaryOriginal', { size: V.formatBytes(current.blob.size) });
     } else if (format === 'gif') {
       estimate.textContent = I18n.t('video.summaryGif', { width, height, length });
+    } else if (isAudioFormat(format)) {
+      const size = V.formatBytes(V.estimateBytes(audioBitrate(format), end - start));
+      estimate.textContent = I18n.t('video.summaryAudio', { length, size });
     } else {
       const bitrate = V.bitrateFor(width, height, Number(fpsSelect.value), qualitySelect.value);
       estimate.textContent = I18n.t('video.summaryVideo', {
@@ -173,6 +244,19 @@
     trimEnd.value = String(end);
     video.currentTime = e.target === trimEnd ? end : start; // show the frame being picked
     updateSummary();
+  }
+
+  /** Whether the file has a sound track (assumed yes when it cannot be checked). */
+  async function hasAudioTrack(blob) {
+    if (!MB) return true;
+    const input = new MB.Input({ source: new MB.BlobSource(blob), formats: MB.ALL_FORMATS });
+    try {
+      return !!(await input.getPrimaryAudioTrack());
+    } catch (err) {
+      return true;
+    } finally {
+      input.dispose();
+    }
   }
 
   // ---------- open / close ----------
@@ -192,7 +276,13 @@
       const duration = await resolveDuration(durationMs / 1000);
       if (!(duration > 0) || !video.videoWidth) throw new Error('no video track, or zero length');
       current = {
-        blob, url, duration, width: video.videoWidth, height: video.videoHeight, saved: false,
+        blob,
+        url,
+        duration,
+        width: video.videoWidth,
+        height: video.videoHeight,
+        hasAudio: await hasAudioTrack(blob),
+        saved: false,
       };
     } catch (err) {
       console.error('could not open the video', err);
@@ -205,6 +295,8 @@
     [trimStart, trimEnd].forEach((input) => { input.max = String(current.duration); });
     trimStart.value = '0';
     trimEnd.value = String(current.duration);
+    audioCheckbox.checked = true; // keep the sound unless the user turns it off for this video
+    audioFormats = await audioFormatsReady;
     fillFormats(formatSelect.value || 'gif');
     applyFormatDefaults();
     if (video.currentTime !== 0) await seek(0).catch(() => {});
@@ -275,16 +367,51 @@
   }
 
   /**
+   * Audio only: Mediabunny reads the file, drops the picture and re-encodes the trimmed sound.
+   * @param {{start:number, end:number, format:string}} options format: a key of AUDIO_FORMATS
+   */
+  async function exportAudio({ start, end, format }) {
+    const spec = AUDIO_FORMATS[format];
+    const input = new MB.Input({ source: new MB.BlobSource(current.blob), formats: MB.ALL_FORMATS });
+    try {
+      const output = new MB.Output({ format: spec.output(), target: new MB.BufferTarget() });
+      const conversion = await MB.Conversion.init({
+        input,
+        output,
+        trim: { start, end },
+        video: { discard: true },
+        audio: { codec: spec.codec, forceTranscode: true, ...(spec.fixedBitrate ? {} : { bitrate: audioBitrate(format) }) },
+        showWarnings: false,
+      });
+      if (!conversion.isValid) throw new Error(`cannot write ${format} audio`);
+      conversion.onProgress = setProgress;
+      job.cancel = () => { conversion.cancel(); };
+      if (job.cancelled) throw CANCELLED;
+      try {
+        await conversion.execute();
+      } catch (err) {
+        if (err instanceof MB.ConversionCanceledError) throw CANCELLED;
+        throw err;
+      }
+      return new Blob([output.target.buffer], { type: spec.mime });
+    } finally {
+      job.cancel = null;
+      input.dispose();
+    }
+  }
+
+  /**
    * Fast path: Mediabunny reads the file, WebCodecs decodes / scales / re-encodes it as fast as the
    * machine allows, and the result is written as a proper MP4 / WebM (with duration and seek index).
-   * @returns {Promise<Blob|null>} null when this browser cannot encode the format this way
+   * @returns {Promise<Blob|null>} null when this browser cannot encode the format (or its sound) this way
    */
   async function convertFast({
-    start, end, width, height, fps, format, bitrate,
+    start, end, width, height, fps, format, bitrate, withAudio,
   }) {
     const quality = new MB.Quality({ bitrate });
     const codec = await MB.getFirstEncodableVideoCodec(FAST_CODECS[format], { width, height, quality });
     if (!codec) return null;
+    const audioCodec = withAudio ? await MB.getFirstEncodableAudioCodec(FAST_AUDIO_CODECS[format]) : null;
     const input = new MB.Input({ source: new MB.BlobSource(current.blob), formats: MB.ALL_FORMATS });
     try {
       const output = new MB.Output({
@@ -298,10 +425,16 @@
         video: {
           width, height, fit: 'fill', frameRate: fps, codec, quality, forceTranscode: true,
         },
-        audio: { discard: true }, // same as the real-time path, which cannot carry audio
+        // kept sound goes into the container's preferred codec when this machine can encode it,
+        // otherwise it is copied / re-encoded into whatever the container accepts
+        audio: { discard: !withAudio, ...(audioCodec ? { codec: audioCodec } : {}) },
         showWarnings: false,
       });
       if (!conversion.isValid) return null;
+      // sound that cannot be encoded here would be dropped silently; the real-time path keeps it
+      if (withAudio && conversion.discardedTracks.some((d) => d.track.type === 'audio' && d.reason !== 'discarded_by_user')) {
+        return null;
+      }
       conversion.onProgress = setProgress;
       job.cancel = () => { conversion.cancel(); };
       if (job.cancelled) throw CANCELLED;
@@ -318,12 +451,18 @@
     }
   }
 
-  /** Plays the trimmed range once, drawing each frame into a canvas that a MediaRecorder encodes. */
+  /**
+   * Plays the trimmed range once, drawing each frame into a canvas that a MediaRecorder encodes;
+   * with `withAudio` the sound playing from the video element is recorded along with it.
+   */
   async function exportVideo({
-    start, end, width, height, fps, mimeType, bitrate,
+    start, end, width, height, fps, format, bitrate, withAudio,
   }) {
     const { canvas, ctx } = frameCanvas(width, height);
     const stream = canvas.captureStream(fps);
+    if (withAudio && video.captureStream) video.captureStream().getAudioTracks().forEach((t) => stream.addTrack(t));
+    const hasAudio = stream.getAudioTracks().length > 0;
+    const mimeType = V.pickMimeType(isTypeSupported, format, hasAudio) || V.pickMimeType(isTypeSupported, format);
     const recorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: bitrate });
     const chunks = [];
     recorder.addEventListener('dataavailable', (e) => { if (e.data.size > 0) chunks.push(e.data); });
@@ -383,6 +522,7 @@
     const fps = Number(fpsSelect.value);
     let kind = 'realtime';
     if (format === 'gif') kind = 'gif';
+    else if (isAudioFormat(format)) kind = 'audio';
     else if (canConvertFast) kind = 'fast';
     job = { cancelled: false, kind, cancel: null };
     video.pause();
@@ -393,12 +533,15 @@
         blob = await exportGif({
           start, end, width, height, fps,
         });
+      } else if (kind === 'audio') {
+        blob = await exportAudio({ start, end, format });
       } else {
         const bitrate = V.bitrateFor(width, height, fps, qualitySelect.value);
+        const withAudio = current.hasAudio && audioCheckbox.checked;
         if (job.kind === 'fast') {
           try {
             blob = await convertFast({
-              start, end, width, height, fps, format, bitrate,
+              start, end, width, height, fps, format, bitrate, withAudio,
             });
           } catch (err) {
             if (err === CANCELLED) throw err;
@@ -409,7 +552,7 @@
           job.kind = 'realtime';
           setProgress(0);
           blob = await exportVideo({
-            start, end, width, height, fps, mimeType: V.pickMimeType(isTypeSupported, format), bitrate,
+            start, end, width, height, fps, format, bitrate, withAudio,
           });
         }
       }
@@ -465,7 +608,7 @@
     updateSummary();
   });
   formatSelect.addEventListener('change', applyFormatDefaults);
-  [sizeSelect, fpsSelect, qualitySelect].forEach((s) => s.addEventListener('change', updateSummary));
+  [sizeSelect, fpsSelect, qualitySelect, audioBitrateSelect].forEach((s) => s.addEventListener('change', updateSummary));
   saveButton.addEventListener('click', save);
   cancelButton.addEventListener('click', cancelJob);
   frameButton.addEventListener('click', addFrameToCanvas);

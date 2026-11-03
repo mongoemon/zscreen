@@ -1,6 +1,7 @@
 'use strict';
 
 // Version badge in the toolbar; press and hold it (or press Enter/Space) to see the changelog.
+// The changelog's footer names the bundled third-party software and shows their licenses.
 (() => {
   const { $ } = App;
 
@@ -9,7 +10,24 @@
   const changelogEl = $('changelog');
   const changelogList = $('changelog-list');
 
+  const licensesFrame = $('licenses-frame');
+  const licensesToggle = $('licenses-toggle');
+  const LICENSES_FILE = 'THIRD_PARTY_LICENSES.txt';
+
   const isChangelogOpen = () => !changelogEl.hidden;
+
+  /** Swaps the changelog for the third-party license texts (loaded on first view) and back. */
+  function showLicenses(show) {
+    if (show && !licensesFrame.getAttribute('src')) licensesFrame.src = LICENSES_FILE;
+    licensesFrame.hidden = !show;
+    changelogList.hidden = show;
+    const texts = [[$('changelog-title'), show ? 'licenses.title' : 'changelog.title'],
+      [licensesToggle, show ? 'licenses.hide' : 'licenses.show']];
+    texts.forEach(([el, key]) => {
+      el.dataset.i18n = key; // kept on language changes by i18n-dom.js
+      el.textContent = I18n.t(key);
+    });
+  }
 
   function renderChangelog() {
     const locale = I18n.getLocale();
@@ -30,6 +48,7 @@
 
   function openChangelog() {
     renderChangelog();
+    showLicenses(false);
     changelogEl.hidden = false;
     $('changelog-close').focus();
   }
@@ -58,6 +77,7 @@
 
     I18n.subscribe(() => { if (isChangelogOpen()) renderChangelog(); });
     $('changelog-close').addEventListener('click', closeChangelog);
+    licensesToggle.addEventListener('click', () => showLicenses(licensesFrame.hidden));
     changelogEl.addEventListener('pointerdown', (e) => { if (e.target === changelogEl) closeChangelog(); });
   }
 

@@ -17,6 +17,22 @@
   /** @type {readonly Release[]} newest first */
   const CHANGELOG = Object.freeze([
     Object.freeze({
+      version: '1.4.0',
+      date: '2026-11-03',
+      changes: Object.freeze({
+        th: Object.freeze([
+          'บันทึกหน้าจอพร้อมเสียง: เสียงในเครื่องและ/หรือไมโครโฟน (ถ้าเปิดทั้งสองจะผสมกัน) และเลือกได้ว่าจะใส่เสียงในวิดีโอที่บันทึกหรือไม่',
+          'บันทึกเฉพาะเสียงเป็น MP3 หรือ M4A (AAC) เลือกบิตเรตได้ 64–320 kbps',
+          'ดูสัญญาอนุญาตของซอฟต์แวร์ภายนอกได้ท้ายหน้าต่างประวัติการอัปเดต',
+        ]),
+        en: Object.freeze([
+          'Screen recording with sound: system sound and / or the microphone (mixed when both are on), and a choice to keep the audio when saving a video',
+          'Save the audio only as MP3 or M4A (AAC), at 64–320 kbps',
+          'Third-party software licenses can be viewed at the bottom of the changelog',
+        ]),
+      }),
+    }),
+    Object.freeze({
       version: '1.3.0',
       date: '2026-11-03',
       changes: Object.freeze({

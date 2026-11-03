@@ -12,7 +12,7 @@ const root = path.join(__dirname, '..');
 const read = (file) => fs.readFileSync(path.join(root, file), 'utf8');
 const html = read('index.html');
 const readme = read('README.md');
-const VENDORED = new Set(['mediabunny.min.js']);
+const VENDORED = new Set(['mediabunny.min.js', 'mediabunny-mp3-encoder.min.js']);
 const appFiles = fs.readdirSync(root).filter((f) => f.endsWith('.js') && !VENDORED.has(f));
 const privacySection = readme.slice(readme.indexOf('## ความเป็นส่วนตัว'));
 
@@ -28,8 +28,13 @@ test('the Content-Security-Policy only allows the app itself (no other server ca
   assert.ok(!('connect-src' in directives), 'connect-src must not be added');
   const allowed = new Set(["'self'", 'blob:', 'data:', "'none'"]);
   for (const [name, sources] of Object.entries(directives)) {
-    for (const source of sources) assert.ok(allowed.has(source), `${name} allows ${source}`);
+    for (const source of sources) {
+      // compiling WebAssembly (the MP3 encoder) is the one extra: it runs code shipped with the app, it reaches nothing
+      if (name === 'script-src' && source === "'wasm-unsafe-eval'") continue;
+      assert.ok(allowed.has(source), `${name} allows ${source}`);
+    }
   }
+  assert.ok(!directives['script-src'].includes("'unsafe-eval'"), 'script-src must not allow eval()');
 });
 
 test('app code makes no network requests; only the service worker fetches (the app files)', () => {
@@ -60,6 +65,14 @@ test('the video library only reads local files (no URL / stream sources)', () =>
   const editor = read('video-editor.js');
   assert.match(editor, /new MB\.BlobSource\(/);
   assert.ok(!/UrlSource|StreamSource|HlsInput/.test(editor));
+});
+
+test('the MP3 encoder carries its WebAssembly inside the file and runs it in a blob worker', () => {
+  const mp3 = read('mediabunny-mp3-encoder.min.js');
+  // its loader can fetch a .wasm by URL, but only when no embedded binary is given; this build embeds one
+  assert.match(mp3, /return \w+\("AGFzbQ/, 'the WASM module ("\\0asm" in base64) is embedded');
+  assert.match(mp3, /new Blob\(\[\w+\],\{type:"text\/javascript"\}\)/, 'the worker comes from a blob URL');
+  assert.deepEqual(mp3.match(/https?:\/\/[^\s'"`)]+/g), ['https://mozilla.org/MPL/2.0/.'], 'only the license link (in its header comment)');
 });
 
 test('no app file contains a web address; the page only has the GitHub and donate links in the toolbar', () => {

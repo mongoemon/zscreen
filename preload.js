@@ -23,11 +23,15 @@ contextBridge.exposeInMainWorld('zcreenshot', {
     remove: (id) => ipcRenderer.send('history:remove', id),
     clear: () => ipcRenderer.send('history:clear'),
   },
-  // Screen recording: list screens/windows, pick one for the next getDisplayMedia() call, and tell
+  // Screen recording: list screens/windows, pick one (and whether to add the system sound) for the
+  // next getDisplayMedia() call, ask for the microphone, and tell
   // the main process when recording starts/stops (it hides the window and offers tray/shortcut stop).
   capture: {
     getSources: () => ipcRenderer.invoke('capture:sources'),
     select: (source) => ipcRenderer.invoke('capture:select', source),
+    // only Windows can record the system sound along with a screen / window
+    systemAudio: process.platform === 'win32',
+    askMicrophone: () => ipcRenderer.invoke('capture:microphone'),
     setRecording: (recording, options) => ipcRenderer.send('capture:recording', recording, options),
     onStop: (callback) => {
       ipcRenderer.on('capture:stop', () => callback());

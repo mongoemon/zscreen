@@ -13,6 +13,7 @@ const FILES = [
   ...scripts,
   'sw.js',
   'manifest.webmanifest',
+  'THIRD_PARTY_LICENSES.txt',
   'build/icon-192.png',
   'build/icon-512.png',
 ];

@@ -11,6 +11,7 @@ const TYPES = {
   '.js': 'text/javascript; charset=utf-8',
   '.webmanifest': 'application/manifest+json',
   '.png': 'image/png',
+  '.txt': 'text/plain; charset=utf-8',
 };
 
 http.createServer((req, res) => {

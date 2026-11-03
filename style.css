@@ -273,6 +273,13 @@ button.version {
 .changelog-list { overflow-y: auto; padding: 4px 16px 14px; user-select: text; }
 .changelog-list h3 { margin: 14px 0 6px; font-size: 14px; color: var(--accent); }
 .changelog-list ul { margin: 0; padding-left: 20px; color: var(--text); font-size: 13px; line-height: 1.6; }
+/* no background: the text file follows the app's dark color-scheme (light text) */
+.licenses-frame { flex: 1; min-height: 50vh; border: 0; }
+.changelog-foot {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 10px 16px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12px;
+}
+.changelog-foot .text-btn { flex-shrink: 0; }
 
 /* Record + video editor dialogs */
 .modal {

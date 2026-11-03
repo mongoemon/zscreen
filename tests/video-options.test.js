@@ -34,8 +34,18 @@ test('MIME selection prefers the best supported candidate', () => {
   assert.deepEqual(V.supportedContainers(only('video/mp4', 'video/webm;codecs=vp9')), ['mp4', 'webm']);
   assert.equal(V.recordingMimeType(only('video/mp4', 'video/webm;codecs=vp9')), 'video/webm;codecs=vp9');
   assert.equal(V.recordingMimeType(only('video/mp4')), 'video/mp4');
+  assert.equal(V.recordingMimeType(only('video/webm;codecs=vp9', 'video/webm;codecs=vp9,opus'), true), 'video/webm;codecs=vp9,opus');
+  assert.equal(V.recordingMimeType(only('video/webm;codecs=vp9', 'video/mp4'), true), 'video/mp4', 'never a video-only codec list for a stream with sound');
+  assert.equal(V.pickMimeType(only('video/mp4;codecs=avc1,mp4a.40.2'), 'mp4', true), 'video/mp4;codecs=avc1,mp4a.40.2');
   assert.equal(V.extensionFor('video/mp4;codecs=avc1'), 'mp4');
   assert.equal(V.extensionFor('video/webm;codecs=vp9'), 'webm');
+});
+
+test('audio bitrates stay in the range MP3 and AAC encoders accept, and include the default', () => {
+  assert.ok(V.AUDIO_BITRATES.every((b) => b >= 64000 && b <= 320000));
+  assert.deepEqual([...V.AUDIO_BITRATES].sort((a, b) => a - b), [...V.AUDIO_BITRATES], 'listed low to high');
+  assert.ok(V.AUDIO_BITRATES.includes(V.DEFAULTS.audioBitrate));
+  assert.equal(V.estimateBytes(128000, 60), 960000); // about 1 MB a minute at the default
 });
 
 test('clampTrim keeps a valid, non-empty range', () => {

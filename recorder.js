@@ -25,6 +25,11 @@
   const sizeSelect = $('record-size');
   const fpsSelect = $('record-fps');
   const hideCheckbox = $('record-hide');
+  const systemAudioCheckbox = $('record-system-audio');
+  const micCheckbox = $('record-mic');
+  const audioNote = $('record-audio-note');
+  // the browser's picker offers "Share audio"; the desktop app can only add it on Windows
+  const canSystemAudio = !capture || capture.systemAudio;
   const sourcesEl = $('record-sources');
   const permissionNote = $('record-permission');
   const startButton = $('record-start');
@@ -56,7 +61,7 @@
   let sources = [];
   let chosenId = null;
   let mode = 'video';
-  // while capturing: video {kind, stream, recorder, chunks, startedAt, timer};
+  // while capturing: video {kind, stream, recorder, chunks, startedAt, timer, release};
   // scroll {kind, stream, capture, lostAt, height, stopping}
   let session = null;
 
@@ -83,6 +88,9 @@
     setTitle(stopButton, m.stopTitle, m.shortcut);
     $('record-size-row').hidden = mode === 'scroll';
     $('record-fps-row').hidden = mode === 'scroll';
+    $('record-system-audio-row').hidden = mode === 'scroll' || !canSystemAudio;
+    $('record-mic-row').hidden = mode === 'scroll';
+    audioNote.hidden = mode === 'scroll' || !!(capture && canSystemAudio);
     $('record-scroll-note').hidden = mode !== 'scroll';
     fillOptions();
   }
@@ -199,18 +207,21 @@
     (mode === 'scroll' ? scrollButton : recordButton).focus();
   }
 
-  /** The chosen source as a stream (null when cancelled or failed; a failure shows `failKey`). */
-  async function openStream(video, failKey) {
+  /**
+   * The chosen source as a stream (null when cancelled or failed; a failure shows `failKey`).
+   * @param {boolean} [audio] also ask for the system sound
+   */
+  async function openStream(video, failKey, audio = false) {
     if (capture) {
       const source = sources.find((s) => s.id === chosenId);
       if (!source) {
         toast('toast.pickSource');
         return null;
       }
-      await capture.select({ id: source.id, name: source.name });
+      await capture.select({ id: source.id, name: source.name, audio });
     }
     try {
-      return await navigator.mediaDevices.getDisplayMedia({ video, audio: false });
+      return await navigator.mediaDevices.getDisplayMedia({ video, audio });
     } catch (err) {
       if (err.name !== 'NotAllowedError' && err.name !== 'AbortError') { // not just "cancelled in the picker"
         console.error('getDisplayMedia failed', err);
@@ -282,6 +293,31 @@
   }
 
   // ---------- recording ----------
+  /** The microphone as a stream, or null (a refusal or failure shows a toast; recording goes on). */
+  async function openMicrophone() {
+    try {
+      if (capture && !(await capture.askMicrophone())) throw new Error('microphone access denied');
+      return await navigator.mediaDevices.getUserMedia({ audio: true });
+    } catch (err) {
+      console.warn('could not open the microphone', err);
+      toast('toast.micFailed');
+      return null;
+    }
+  }
+
+  /**
+   * One audio track for the recorder: MediaRecorder only records the first audio track of a
+   * stream, so system sound and microphone are mixed together when both are there.
+   * @returns {{track: MediaStreamTrack|null, context: AudioContext|null}}
+   */
+  function mixAudio(tracks) {
+    if (tracks.length <= 1) return { track: tracks[0] || null, context: null };
+    const context = new AudioContext();
+    const out = context.createMediaStreamDestination();
+    tracks.forEach((t) => context.createMediaStreamSource(new MediaStream([t])).connect(out));
+    return { track: out.stream.getAudioTracks()[0], context };
+  }
+
   async function startRecording() {
     if (session) return;
     if (mode === 'scroll') {
@@ -290,12 +326,16 @@
     }
     const maxShort = Number(sizeSelect.value);
     const fps = Number(fpsSelect.value);
-    const stream = await openStream({ frameRate: { ideal: fps, max: fps } }, 'toast.recordFailed');
-    if (!stream) return;
+    const wantSystemAudio = canSystemAudio && systemAudioCheckbox.checked;
+    const display = await openStream({ frameRate: { ideal: fps, max: fps } }, 'toast.recordFailed', wantSystemAudio);
+    if (!display) return;
+    const mic = micCheckbox.checked ? await openMicrophone() : null;
+    const inputs = [display, ...(mic ? [mic] : [])];
+    const stopInputs = () => inputs.forEach((s) => s.getTracks().forEach((t) => t.stop()));
 
     // Scale the capture itself (rather than re-drawing frames), so recording keeps working while
     // the window is hidden and costs no extra CPU.
-    const track = stream.getVideoTracks()[0];
+    const track = display.getVideoTracks()[0];
     const native = track.getSettings();
     if (maxShort > 0 && native.width && native.height) {
       const target = VideoOptions.fitSize(native.width, native.height, maxShort);
@@ -308,7 +348,9 @@
       }
     }
     const settings = track.getSettings();
-    const mimeType = VideoOptions.recordingMimeType((m) => MediaRecorder.isTypeSupported(m));
+    const audio = mixAudio(inputs.flatMap((s) => s.getAudioTracks()));
+    const stream = new MediaStream([track, ...(audio.track ? [audio.track] : [])]);
+    const mimeType = VideoOptions.recordingMimeType((m) => MediaRecorder.isTypeSupported(m), !!audio.track);
     let recorder;
     try {
       recorder = new MediaRecorder(stream, {
@@ -317,13 +359,19 @@
       });
     } catch (err) {
       console.error('MediaRecorder failed', err);
-      stream.getTracks().forEach((t) => t.stop());
+      stopInputs();
+      if (audio.context) audio.context.close();
       toast('toast.recordFailed');
       return;
     }
 
     const current = {
       kind: 'video', stream, recorder, chunks: [], startedAt: 0, timer: null,
+      release: () => {
+        stopInputs();
+        stream.getTracks().forEach((t) => t.stop());
+        if (audio.context) audio.context.close();
+      },
     };
     session = current;
     recorder.addEventListener('dataavailable', (e) => { if (e.data.size > 0) current.chunks.push(e.data); });
@@ -348,7 +396,7 @@
     }
     if (session.recorder.state === 'inactive') return;
     session.recorder.stop();
-    session.stream.getTracks().forEach((t) => t.stop());
+    session.release();
   }
 
   async function finishRecording(current) {
@@ -405,6 +453,7 @@
   $('record-sources-wrap').hidden = !capture;
   $('record-hide-row').hidden = !capture;
   $('record-web-note').hidden = !!capture;
+  setText(audioNote, capture ? 'record.audioNoteMac' : 'record.audioNoteWeb');
   if (capture) {
     capture.onStop(stopRecording);
     capture.onOpen((which) => openRecordDialog(which === 'scroll' ? 'scroll' : 'video'));
