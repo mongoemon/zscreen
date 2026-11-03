@@ -227,6 +227,7 @@ Web เก็บค่าไว้ในเบราว์เซอร์ (local
 | `zcreenshot-width` | localStorage | ความหนาเส้นที่ใช้ล่าสุด |
 | `zcreenshot-history-visible` | localStorage (Web) | แสดง/ซ่อนแผงประวัติรูป |
 | `zcreenshot.shortcuts` | localStorage | ปุ่มลัดที่คุณเปลี่ยนเอง |
+| `zcreenshot.blankPage` | localStorage | ขนาด / DPI / สีพื้นหลังของหน้าเปล่าที่สร้างล่าสุด เช่น `{"width":794,"height":1123,"dpi":96,"color":"#ffffff","transparent":false}` |
 | `history-panel.json` | โฟลเดอร์ข้อมูลของแอป (Desktop) | แสดง/ซ่อนแผงประวัติคลิปบอร์ด เช่น `{"visible":true}` |
 | `shortcuts.json` | โฟลเดอร์ข้อมูลของแอป (Desktop) | ปุ่มลัดทั้งระบบที่คุณเปลี่ยนเอง เช่น `{"record":["Mod+Alt+r"]}` |
 

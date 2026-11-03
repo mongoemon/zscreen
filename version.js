@@ -17,6 +17,18 @@
   /** @type {readonly Release[]} newest first */
   const CHANGELOG = Object.freeze([
     Object.freeze({
+      version: '1.3.0',
+      date: '2026-11-03',
+      changes: Object.freeze({
+        th: Object.freeze([
+          'สร้างหน้าเปล่า: เลือกขนาดกระดาษ (A4, Letter ฯลฯ), ขนาดจอ/สไลด์, ขนาดโพสต์โซเชียล หรือกำหนดเอง พร้อม DPI และสีพื้นหลังหรือพื้นโปร่งใส (ปุ่มลัด Ctrl/Cmd+Alt+N)',
+        ]),
+        en: Object.freeze([
+          'New blank page: paper sizes (A4, Letter…), screen / slide and social post sizes, or a custom size, with DPI and a background colour or transparency (Ctrl/Cmd+Alt+N)',
+        ]),
+      }),
+    }),
+    Object.freeze({
       version: '1.2.0',
       date: '2026-11-02',
       changes: Object.freeze({

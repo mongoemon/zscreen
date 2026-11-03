@@ -1,6 +1,6 @@
 // App-shell cache so the installed PWA opens instantly and works offline.
 // Bump CACHE_VERSION whenever the shell files change.
-const CACHE_VERSION = 'zcreenshot-v17';
+const CACHE_VERSION = 'zcreenshot-v18';
 const SHELL = [
   './',
   './index.html',
@@ -10,6 +10,7 @@ const SHELL = [
   './keys.js',
   './shortcuts.js',
   './video-options.js',
+  './blank-page.js',
   './gif-encoder.js',
   './webm-duration.js',
   './scene.js',
@@ -23,6 +24,7 @@ const SHELL = [
   './scene-actions.js',
   './export.js',
   './region.js',
+  './blank-dialog.js',
   './shortcut-settings.js',
   './mediabunny.min.js',
   './video-editor.js',

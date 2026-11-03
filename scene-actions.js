@@ -12,7 +12,6 @@
       return;
     }
 
-    const wasEmpty = S.items.length === 0;
     const bitmaps = [];
     for (const blob of images) {
       try {
@@ -24,7 +23,13 @@
     }
     if (bitmaps.length === 0) return;
     if (record && App.webHistory) App.webHistory.record(images);
+    placeBitmaps(bitmaps);
+    toast('toast.added', { count: bitmaps.length });
+  }
 
+  /** Stacks decoded images under the existing ones (one undo step) and selects the last. */
+  function placeBitmaps(bitmaps) {
+    const wasEmpty = S.items.length === 0;
     const sizes = bitmaps.map((b) => ({ w: b.width, h: b.height }));
     const placed = Scene.stackPositions(S.items, sizes, C.GAP);
     const added = bitmaps.map((bitmap, i) => ({ id: S.nextId++, bitmap, ...placed[i] }));
@@ -35,7 +40,6 @@
     if (wasEmpty) App.fitView();
     else App.revealItem(added[0]);
     App.render();
-    toast('toast.added', { count: added.length });
   }
 
   async function pasteFromClipboardApi() {
@@ -109,5 +113,5 @@
     App.render();
   }
 
-  Object.assign(App, { addBlobs, pasteFromClipboardApi, deleteSelected, clearAll, arrangeVertically });
+  Object.assign(App, { addBlobs, placeBitmaps, pasteFromClipboardApi, deleteSelected, clearAll, arrangeVertically });
 })();

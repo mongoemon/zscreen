@@ -24,6 +24,7 @@
   const IMAGE_ACTIONS = Object.freeze({
     settings: () => App.openSettings(),
     openFiles: () => fileInput.click(),
+    newBlank: () => App.openBlankDialog(),
     undo: () => App.undo(),
     save: () => App.savePng(),
     copy: () => (S.region ? App.copyRegion() : App.copyImage()),

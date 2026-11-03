@@ -302,6 +302,11 @@ button.version {
   border: 1px solid var(--line); border-radius: 6px; padding: 3px 6px;
 }
 .field.check { cursor: pointer; }
+.field input[type="number"] {
+  width: 84px; font: inherit; font-size: 13px; color: var(--text); background: #30323a;
+  border: 1px solid var(--line); border-radius: 6px; padding: 3px 6px; font-variant-numeric: tabular-nums;
+}
+.field input[type="color"]:disabled { opacity: 0.4; }
 .note { margin: 0; font-size: 12px; color: var(--muted); line-height: 1.5; }
 .note.warn { color: #ffcc00; }
 .section-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }

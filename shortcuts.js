@@ -37,6 +37,7 @@
 
     action('settings', 'image', 'image', 'sc.settings', ['Mod+,']),
     action('openFiles', 'image', 'image', 'sc.openFiles', ['Mod+O']),
+    action('newBlank', 'image', 'image', 'sc.newBlank', ['Mod+Alt+N']),
     action('undo', 'image', 'image', 'sc.undo', ['Mod+Z']),
     action('save', 'image', 'image', 'sc.save', ['Mod+S']),
     action('copy', 'image', 'image', 'sc.copy', ['Mod+C']),

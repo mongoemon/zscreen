@@ -83,7 +83,7 @@ test('everything the app saves is listed in the README privacy section', () => {
     assert.ok(!/indexedDB|sessionStorage|document\.cookie/.test(source), `${file} uses other browser storage`);
   }
   assert.deepEqual([...stored].sort(), [
-    'history-panel.json', 'shortcuts.json', 'zcreenshot-history-visible', 'zcreenshot-width', 'zcreenshot.locale', 'zcreenshot.shortcuts',
+    'history-panel.json', 'shortcuts.json', 'zcreenshot-history-visible', 'zcreenshot-width', 'zcreenshot.blankPage', 'zcreenshot.locale', 'zcreenshot.shortcuts',
   ]);
   for (const name of stored) assert.ok(privacySection.includes(name), `README privacy section does not mention ${name}`);
 });
