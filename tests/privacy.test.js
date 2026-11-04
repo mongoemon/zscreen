@@ -75,6 +75,16 @@ test('the MP3 encoder carries its WebAssembly inside the file and runs it in a b
   assert.deepEqual(mp3.match(/https?:\/\/[^\s'"`)]+/g), ['https://mozilla.org/MPL/2.0/.'], 'only the license link (in its header comment)');
 });
 
+test('OCR (Tesseract.js) loads every file from ocr/ in the app and caches nothing in IndexedDB', () => {
+  const source = read('ocr.js');
+  for (const option of ['workerPath', 'corePath', 'langPath']) {
+    assert.match(source, new RegExp(`${option}: fileUrl\\(`), `${option} must point into ocr/ (the default is a CDN)`);
+  }
+  assert.ok(source.includes('const fileUrl = (name) => new URL(`${Cfg.DIR}/${name}`, location.href).href;'));
+  assert.ok(source.includes("cacheMethod: 'none'"));
+  assert.ok(source.includes('script.src = `${Cfg.DIR}/${Cfg.FILES.library}`'));
+});
+
 test('no app file contains a web address; the page only has the GitHub and donate links in the toolbar', () => {
   for (const file of appFiles) assert.deepEqual(read(file).match(/https?:\/\/[^\s'"`)]+/g) || [], [], `${file} has a URL`);
   const urls = html.match(/https?:\/\/[^\s'"`)]+/g) || [];

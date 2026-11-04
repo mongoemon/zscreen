@@ -17,6 +17,26 @@
   /** @type {readonly Release[]} newest first */
   const CHANGELOG = Object.freeze([
     Object.freeze({
+      version: '1.6.0',
+      date: '2026-11-05',
+      changes: Object.freeze({
+        th: Object.freeze([
+          'ดึงข้อความจากรูป (OCR) ภาษาไทยและอังกฤษ: อ่านทั้งรูปหรือเฉพาะส่วนที่เลือก แล้วคัดลอกหรือบันทึกเป็น .txt ได้ ประมวลผลในเครื่องทั้งหมด',
+          'เปิดหลายเอกสารเป็นแท็บ: แต่ละแท็บมีรูป สิ่งที่วาด และ Undo ของตัวเอง เปลี่ยนชื่อ ลากสลับลำดับ และปิดได้',
+          'ข้อความบนลูกศร: ขึ้นบรรทัดใหม่ด้วย Shift+Enter, ฟอนต์เล็กลงให้สมดุลกับลูกศร และจัดชิดซ้าย/ขวาตามทิศของลูกศร',
+          'ระหว่างพิมพ์ข้อความ แสดงเส้นขอบตัวอักษรให้เห็นทันทีถ้าเปิดไว้',
+          'ย้ายหน้าต่าง (dialog) ได้ด้วยการลากที่หัวหน้าต่าง',
+        ]),
+        en: Object.freeze([
+          'Extract text from images (OCR) in Thai and English: read a whole image or just a selected area, then copy it or save it as .txt, all processed on your device',
+          'Multiple documents in tabs: each tab has its own images, drawings and undo; tabs can be renamed, reordered by dragging and closed',
+          'Arrow labels: Shift+Enter adds a line break, the font is smaller to balance the arrow, and lines align left/right by the arrow direction',
+          'While typing text, the preview shows the outline when it is turned on',
+          'Dialogs can be moved by dragging their header',
+        ]),
+      }),
+    }),
+    Object.freeze({
       version: '1.5.0',
       date: '2026-11-03',
       changes: Object.freeze({

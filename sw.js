@@ -1,6 +1,7 @@
 // App-shell cache so the installed PWA opens instantly and works offline.
 // Bump CACHE_VERSION whenever the shell files change.
-const CACHE_VERSION = 'zcreenshot-v19';
+// The OCR files in ocr/ (~8 MB) are not precached: the fetch handler below caches them on first use.
+const CACHE_VERSION = 'zcreenshot-v22';
 const SHELL = [
   './',
   './index.html',
@@ -14,6 +15,7 @@ const SHELL = [
   './gif-encoder.js',
   './webm-duration.js',
   './scene.js',
+  './doc-tabs.js',
   './draw.js',
   './app.js',
   './viewport.js',
@@ -24,8 +26,11 @@ const SHELL = [
   './scene-actions.js',
   './export.js',
   './region.js',
+  './ocr-config.js',
+  './ocr.js',
   './blank-dialog.js',
   './shortcut-settings.js',
+  './documents.js',
   './mediabunny.min.js',
   './mediabunny-mp3-encoder.min.js',
   './THIRD_PARTY_LICENSES.txt',
@@ -40,6 +45,7 @@ const SHELL = [
   './history-panel.js',
   './i18n-dom.js',
   './version-badge.js',
+  './dialog-drag.js',
   './renderer.js',
   './manifest.webmanifest',
   './icon-192.png',

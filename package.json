@@ -1,6 +1,6 @@
 {
   "name": "zcreenshot",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "description": "Screenshot stacking editor - paste or drop images, arrange them freely",
   "main": "main.js",
   "scripts": {
@@ -17,7 +17,7 @@
   "build": {
     "appId": "com.zcreenshot.app",
     "productName": "Zcreenshot",
-    "files": ["*.js", "index.html", "style.css", "build/icon.png", "THIRD_PARTY_LICENSES.txt"],
+    "files": ["*.js", "index.html", "style.css", "ocr/**", "build/icon.png", "THIRD_PARTY_LICENSES.txt"],
     "extraFiles": ["THIRD_PARTY_LICENSES.txt"],
     "win": { "target": ["nsis", "portable"], "icon": "build/icon.png" },
     "mac": {

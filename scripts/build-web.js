@@ -29,4 +29,6 @@ for (const file of FILES) {
   }
   fs.copyFileSync(from, path.join(outDir, path.basename(file)));
 }
+// the OCR library + language files are loaded on demand from ocr/ (kept as a folder)
+fs.cpSync(path.join(root, 'ocr'), path.join(outDir, 'ocr'), { recursive: true });
 console.log(`web build ready: ${outDir} (${FILES.length} files)`);

@@ -249,10 +249,21 @@ describe('arrow labels', () => {
   const arrow = (o = {}) => line({ type: 'arrow', label: 'ดูตรงนี้ look here', labelW: 80, labelH: 30, ...o });
 
   test('label size follows the arrow size (head size) and never shrinks below the smallest head', () => {
-    assert.equal(S.arrowLabelSize(4), Math.round(S.arrowHeadSize(4) * 1.5));
+    assert.equal(S.arrowLabelSize(8), Math.round(S.arrowHeadSize(8) * 0.9));
+    assert.equal(S.arrowLabelSize(1), 14); // floor keeps thin arrows' labels readable
     assert.ok(S.arrowLabelSize(8) > S.arrowLabelSize(4));
     assert.ok(S.arrowLabelSize(24) > S.arrowLabelSize(8));
     assert.equal(S.arrowLabelSize(1), S.arrowLabelSize(2)); // thin arrows share the minimum head size
+  });
+
+  test('label lines align towards the tail: right for an arrow pointing right, left pointing left', () => {
+    assert.equal(S.arrowLabelAlign(arrow()), 'right'); // tail (0,0) -> head (100,0)
+    assert.equal(S.arrowLabelAlign(arrow({ x2: -100 })), 'left');
+    assert.equal(S.arrowLabelAlign(arrow({ x2: 70, y2: 70 })), 'right'); // 45 degrees still counts as sideways
+    assert.equal(S.arrowLabelAlign(arrow({ x2: -70, y2: -70 })), 'left');
+    assert.equal(S.arrowLabelAlign(arrow({ x2: 0, y2: 100 })), 'center'); // straight down
+    assert.equal(S.arrowLabelAlign(arrow({ x2: 20, y2: -100 })), 'center'); // nearly straight up
+    assert.equal(S.arrowLabelAlign(arrow({ x2: 0, y2: 0 })), 'center'); // zero length
   });
 
   test('an arrow without a label has no label box', () => {

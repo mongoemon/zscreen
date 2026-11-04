@@ -29,6 +29,7 @@
     save: () => App.savePng(),
     copy: () => (S.region ? App.copyRegion() : App.copyImage()),
     copyAll: () => App.copyAll(),
+    exportText: () => App.exportText(),
     regionPaste: () => App.pasteRegion(),
     deleteSelected: () => App.deleteSelected(),
     fit: () => { App.fitView(); App.render(); },
@@ -37,6 +38,10 @@
     toggleHistory: () => $('btn-history').click(),
     arrange: () => App.arrangeVertically(),
     clearAll: () => App.clearAll(),
+    newTab: () => App.newTab(),
+    closeTab: () => App.closeTab(),
+    nextTab: () => App.nextTab(),
+    prevTab: () => App.prevTab(),
     ...Object.fromEntries(Object.entries(TOOL_ACTIONS).map(([id, tool]) => [id, () => App.setTool(tool)])),
   });
   /** Shortcuts that only apply in some states; otherwise the key keeps its normal meaning. */

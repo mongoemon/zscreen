@@ -151,6 +151,38 @@ button.icon-btn { display: inline-flex; align-items: center; justify-content: ce
   user-select: text;
 }
 
+/* Open documents: one tab each, the active one joins the canvas below */
+.doc-tabs {
+  display: flex; align-items: flex-end; gap: 4px; padding: 4px 12px 0;
+  background: #202127; border-bottom: 1px solid var(--line);
+}
+.doc-tab-list { display: flex; align-items: flex-end; gap: 2px; min-width: 0; overflow-x: auto; scrollbar-width: none; }
+.doc-tab-list::-webkit-scrollbar { display: none; }
+.doc-tab {
+  display: flex; align-items: center; flex: none; max-width: 200px; height: 30px; margin-bottom: -1px;
+  background: transparent; border: 1px solid transparent; border-bottom: none; border-radius: 6px 6px 0 0;
+  color: var(--muted);
+}
+.doc-tab:hover { background: #2a2b32; color: var(--text); }
+.doc-tab.active { background: var(--bg); border-color: var(--line); color: var(--text); box-shadow: inset 0 2px 0 var(--accent); }
+.doc-tab-btn {
+  min-width: 0; height: 100%; padding: 0 4px 0 12px; border: none; background: none; color: inherit;
+  font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.doc-tab-btn:hover { background: none; }
+.doc-tab-close {
+  display: inline-flex; align-items: center; justify-content: center; flex: none;
+  width: 20px; height: 20px; margin-right: 6px; padding: 0; border: none; border-radius: 4px;
+  background: none; color: inherit; opacity: 0.6;
+}
+.doc-tab-close .icon { width: 14px; height: 14px; }
+.doc-tab-close:hover { opacity: 1; background: #3a3c45; }
+.doc-tab-rename {
+  width: 150px; margin: 0 4px 0 8px; padding: 2px 4px; font: inherit; font-size: 13px;
+  color: var(--text); background: #30323a; border: 1px solid var(--accent); border-radius: 4px; outline: none;
+}
+.doc-tabs > .icon-btn { flex: none; width: 28px; height: 26px; margin-bottom: 3px; }
+
 .workspace { display: flex; flex: 1; min-height: 0; }
 #stage { position: relative; flex: 1; min-width: 0; min-height: 0; }
 
@@ -304,6 +336,9 @@ button.version {
 .modal-body { display: flex; flex-direction: column; gap: 12px; padding: 14px 16px; overflow-y: auto; min-height: 0; }
 .modal-foot { display: flex; align-items: center; justify-content: flex-end; gap: 8px; padding: 12px 16px; border-top: 1px solid var(--line); }
 .modal-foot button { display: inline-flex; align-items: center; gap: 6px; }
+/* dialogs are moved by dragging the header (dialog-drag.js) */
+.modal-head, .changelog-head { cursor: grab; user-select: none; touch-action: none; }
+.modal-head.dragging, .changelog-head.dragging { cursor: grabbing; }
 .muted { color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
 
 .form-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; }
@@ -379,6 +414,16 @@ button.version {
 .fixed-list { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 12px; margin: 0; font-size: 13px; color: var(--muted); }
 .fixed-list dd { margin: 0; text-align: right; }
 .modal-card:focus { outline: none; }
+/* OCR values: plain text, selectable so the library / parameter names can be copied */
+.ocr-settings dd { color: var(--text); white-space: pre-line; user-select: text; }
+
+/* Export text: what OCR read, editable before copying */
+.ocr-text {
+  width: 100%; min-height: 240px; height: 46vh; resize: vertical; padding: 8px 10px;
+  font: inherit; font-size: 14px; line-height: 1.6; color: var(--text);
+  background: var(--bg); border: 1px solid var(--line); border-radius: 6px; user-select: text;
+}
+.ocr-text:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
 @media (max-width: 640px) {
   .sc-row { grid-template-columns: 1fr; }
   .sc-keys { justify-content: flex-start; }

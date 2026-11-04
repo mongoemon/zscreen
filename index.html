@@ -41,6 +41,8 @@
     <symbol id="i-settings" viewBox="0 0 24 24"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></symbol>
     <symbol id="i-file-plus" viewBox="0 0 24 24"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M9 15h6"/><path d="M12 18v-6"/></symbol>
     <symbol id="i-rotate" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14"/><path d="M5 12h14"/></symbol>
+    <symbol id="i-scan-text" viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 8h8"/><path d="M7 12h10"/><path d="M7 16h6"/></symbol>
     <symbol id="i-close"viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol>
 
     <symbol id="i-select" viewBox="0 0 24 24"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></symbol>
@@ -86,6 +88,7 @@
     <!-- hidden until the Ko-fi account is set up; plan: a "hide donate button" option in Settings -->
     <a id="btn-donate" class="icon-btn" href="https://ko-fi.com/mongoemon" target="_blank" rel="noopener noreferrer" data-i18n-title="btn.donate" hidden><svg class="icon"><use href="#i-heart"/></svg></a>
     <span id="zoom-label" class="zoom">100%</span>
+    <button id="btn-ocr" data-shortcut="exportText" class="icon-btn" data-i18n-title="btn.ocr" aria-haspopup="dialog"><svg class="icon"><use href="#i-scan-text"/></svg></button>
     <button id="btn-copy" data-shortcut="copy" class="icon-btn" data-i18n-title="btn.copy"><svg class="icon"><use href="#i-copy"/></svg></button>
     <button id="btn-copy-all" data-shortcut="copyAll" class="icon-btn" data-i18n-title="btn.copyAll"><svg class="icon"><use href="#i-copy-all"/></svg></button>
     <button id="btn-save" data-shortcut="save" class="icon-btn primary" data-i18n-title="btn.save"><svg class="icon"><use href="#i-download"/></svg></button>
@@ -125,10 +128,16 @@
     </label>
   </div>
 
+  <!-- Open documents (documents.js builds one tab per document) -->
+  <div class="doc-tabs">
+    <div id="doc-tab-list" class="doc-tab-list" role="tablist" data-i18n-aria="tabs.label"></div>
+    <button id="btn-new-tab" data-shortcut="newTab" class="icon-btn" data-i18n-title="tabs.new"><svg class="icon"><use href="#i-plus"/></svg></button>
+  </div>
+
   <div class="workspace">
   <main id="stage">
     <canvas id="canvas"></canvas>
-    <textarea id="text-editor" class="text-editor" hidden spellcheck="false" data-i18n-aria="editor.label"></textarea>
+    <textarea id="text-editor" class="text-editor" hidden spellcheck="false" data-i18n-title="editor.label"></textarea>
     <div id="hint" class="hint">
       <div class="hint-title" data-i18n="hint.title"></div>
       <div><span data-i18n="hint.pressPrefix"></span> <kbd>Ctrl/Cmd</kbd> + <kbd>V</kbd> <span data-i18n="hint.pressSuffix"></span></div>
@@ -279,7 +288,30 @@
     </form>
   </div>
 
-  <!-- Settings: keyboard shortcuts (rows are built by shortcut-settings.js). -->
+  <!-- Export text: what OCR read from the image, to copy or save (ocr.js). -->
+  <div id="ocr-dialog" class="modal" role="dialog" aria-modal="true" aria-labelledby="ocr-title" hidden>
+    <div class="modal-card">
+      <div class="modal-head">
+        <h2 id="ocr-title" data-i18n="ocr.title"></h2>
+        <button id="ocr-close" class="icon-btn" data-i18n-title="dialog.close"><svg class="icon"><use href="#i-close"/></svg></button>
+      </div>
+      <div class="modal-body">
+        <div id="ocr-progress-row" class="progress-row">
+          <progress id="ocr-progress" max="1" value="0"></progress>
+          <span id="ocr-status" class="muted"></span>
+        </div>
+        <textarea id="ocr-text" class="ocr-text" spellcheck="false" data-i18n-aria="ocr.textLabel" hidden></textarea>
+        <p id="ocr-info" class="note"></p>
+      </div>
+      <div class="modal-foot">
+        <button id="ocr-save" class="text-btn" data-i18n="ocr.saveTxt" disabled></button>
+        <span class="spacer"></span>
+        <button id="ocr-copy" class="primary" data-i18n-title="ocr.copyTitle" disabled><svg class="icon"><use href="#i-copy"/></svg> <span data-i18n="ocr.copy"></span></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings: keyboard shortcuts (rows are built by shortcut-settings.js) and the OCR values (ocr.js, read-only). -->
   <div id="settings-dialog" class="modal" role="dialog" aria-modal="true" aria-labelledby="settings-title" hidden>
     <div class="modal-card wide">
       <div class="modal-head">
@@ -292,6 +324,9 @@
         <div id="shortcut-list" class="shortcut-list"></div>
         <h3 class="sc-fixed-title" data-i18n="settings.fixed"></h3>
         <dl id="fixed-shortcuts" class="fixed-list"></dl>
+        <h3 class="sc-fixed-title" data-i18n="ocr.settingsTitle"></h3>
+        <p class="note" data-i18n="ocr.settingsHint"></p>
+        <dl id="ocr-settings" class="fixed-list ocr-settings"></dl>
       </div>
       <div class="modal-foot">
         <button id="shortcuts-reset-all" data-i18n="settings.resetAll"></button>
@@ -311,6 +346,7 @@
   <script src="gif-encoder.js"></script>
   <script src="webm-duration.js"></script>
   <script src="scene.js"></script>
+  <script src="doc-tabs.js"></script>
   <script src="draw.js"></script>
   <script src="app.js"></script>
   <script src="viewport.js"></script>
@@ -321,8 +357,11 @@
   <script src="scene-actions.js"></script>
   <script src="export.js"></script>
   <script src="region.js"></script>
+  <script src="ocr-config.js"></script>
+  <script src="ocr.js"></script>
   <script src="blank-dialog.js"></script>
   <script src="shortcut-settings.js"></script>
+  <script src="documents.js"></script>
   <script src="mediabunny.min.js"></script>
   <script src="mediabunny-mp3-encoder.min.js"></script>
   <script src="video-editor.js"></script>
@@ -336,6 +375,7 @@
   <script src="history-panel.js"></script>
   <script src="i18n-dom.js"></script>
   <script src="version-badge.js"></script>
+  <script src="dialog-drag.js"></script>
   <script src="renderer.js"></script>
 </body>
 </html>

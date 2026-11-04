@@ -17,14 +17,27 @@
     textEditor.style.height = `${textEditor.scrollHeight}px`;
   }
 
+  /**
+   * Preview the contrasting outline the text will be drawn with; the stroke is painted under the fill,
+   * like on the canvas. Returns how far it reaches past the glyphs (px), so the box can make room for it.
+   */
+  function setOutline(on, color, fontPx) {
+    const width = on ? Draw.outlineWidth(fontPx) : 0;
+    textEditor.style.webkitTextStroke = on ? `${width}px ${Scene.contrastColor(color)}` : '';
+    textEditor.style.paintOrder = on ? 'stroke fill' : '';
+    return width / 2;
+  }
+
   /** Arrow label: sized like the drawn label and centred on the box it will occupy while typing. */
   function positionArrowEditor(a, view) {
     const live = { ...a, label: textEditor.value || ' ' };
     const rect = Scene.arrowLabelRect({ ...live, ...Draw.measureArrowLabel(live) });
-    textEditor.style.font = Draw.fontOf(Scene.arrowLabelSize(a.width) * view.scale);
+    const fontPx = Scene.arrowLabelSize(a.width) * view.scale;
+    textEditor.style.font = Draw.fontOf(fontPx);
+    const bleed = setOutline(a.stroke, a.color, fontPx); // the box stays centred, so padding needs no offset
     textEditor.style.lineHeight = '1.3';
-    textEditor.style.padding = '0px';
-    textEditor.style.textAlign = 'center';
+    textEditor.style.padding = `${bleed}px`;
+    textEditor.style.textAlign = Scene.arrowLabelAlign(a);
     textEditor.style.color = a.color;
     textEditor.style.background = 'rgba(0,0,0,0.25)';
     fitEditor(8); // no wide minimum: the box must match the label it will become, or it sits off the tail
@@ -41,10 +54,12 @@
       positionArrowEditor(a, view);
       return;
     }
-    const pad = a.bg ? Draw.TEXT_PAD * view.scale : 0;
-    textEditor.style.left = `${a.x * view.scale + view.x}px`;
-    textEditor.style.top = `${a.y * view.scale + view.y}px`;
     textEditor.style.font = Draw.fontOf(a.size * view.scale);
+    // a filled label already contrasts with its text; an outline gets room and the box shifts back by it
+    const bleed = setOutline(a.stroke && !a.bg, a.color, a.size * view.scale);
+    const pad = a.bg ? Draw.TEXT_PAD * view.scale : bleed;
+    textEditor.style.left = `${a.x * view.scale + view.x - bleed}px`;
+    textEditor.style.top = `${a.y * view.scale + view.y - bleed}px`;
     textEditor.style.lineHeight = '1.3';
     textEditor.style.padding = `${pad}px`;
     textEditor.style.textAlign = 'left';

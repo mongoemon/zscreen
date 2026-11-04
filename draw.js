@@ -123,12 +123,15 @@
     drawArrowLabel(ctx, a);
   }
 
+  /** Width of the text outline stroke (centred on the glyph edge) for a font size. */
+  const outlineWidth = (size) => Math.max(2, size * STROKE_RATIO);
+
   /** Fill text, first outlining it in the contrasting colour when `stroke` is on so it stays legible on any image. */
   function fillTextLine(ctx, str, x, y, size, color, stroke) {
     if (stroke) {
       ctx.save();
       ctx.lineJoin = 'round';
-      ctx.lineWidth = Math.max(2, size * STROKE_RATIO);
+      ctx.lineWidth = outlineWidth(size);
       ctx.strokeStyle = root.Scene.contrastColor(color);
       ctx.strokeText(str, x, y);
       ctx.restore();
@@ -137,16 +140,18 @@
     ctx.fillText(str, x, y);
   }
 
-  /** Label behind the arrow's tail; lines are centred on the label box. */
+  /** Label behind the arrow's tail; lines line up on the tail's side of the box (see arrowLabelAlign). */
   function drawArrowLabel(ctx, a) {
     const rect = root.Scene.arrowLabelRect(a);
     if (!rect) return;
     const size = root.Scene.arrowLabelSize(a.width);
+    const align = root.Scene.arrowLabelAlign(a);
+    const x = { left: rect.x, center: rect.x + rect.w / 2, right: rect.x + rect.w }[align];
     ctx.font = fontOf(size);
-    ctx.textAlign = 'center';
+    ctx.textAlign = align;
     ctx.textBaseline = 'top';
     a.label.split('\n').forEach((line, i) => {
-      fillTextLine(ctx, line, rect.x + rect.w / 2, rect.y + i * size * LINE_HEIGHT, size, a.color, a.stroke);
+      fillTextLine(ctx, line, x, rect.y + i * size * LINE_HEIGHT, size, a.color, a.stroke);
     });
   }
 
@@ -264,6 +269,6 @@
   }
 
   root.Draw = {
-    drawAnnotations, measureText, measureArrowLabel, TEXT_PAD, fontOf,
+    drawAnnotations, measureText, measureArrowLabel, TEXT_PAD, fontOf, outlineWidth,
   };
 })(window);

@@ -44,11 +44,22 @@
       return;
     }
     try {
-      downloadBlob(await toPngBlob(composeCanvas(S.items, S.annotations)), `zcreenshot-${fileStamp()}.png`);
+      downloadBlob(await toPngBlob(composeCanvas(S.items, S.annotations)), `${App.documentFileName() || 'zcreenshot'}-${fileStamp()}.png`);
     } catch (err) {
       console.error(err);
       toast('toast.saveFailed');
     }
+  }
+
+  /** The selected image (or the owner of the selected annotation) with its annotations; everything when nothing is selected. */
+  function selectionTarget() {
+    const selAnn = App.selectedAnnotation();
+    const target = App.selected() || (selAnn && S.items.find((it) => it.id === selAnn.ownerId)) || null;
+    return {
+      target,
+      list: target ? [target] : S.items,
+      anns: target ? S.annotations.filter((a) => a.ownerId === target.id) : S.annotations,
+    };
   }
 
   // Copies the selected image (with its annotations); the whole composition when nothing is selected.
@@ -58,10 +69,7 @@
       toast('toast.noImages');
       return;
     }
-    const selAnn = App.selectedAnnotation();
-    const target = App.selected() || (selAnn && S.items.find((it) => it.id === selAnn.ownerId)) || null;
-    const list = target ? [target] : S.items;
-    const anns = target ? S.annotations.filter((a) => a.ownerId === target.id) : S.annotations;
+    const { target, list, anns } = selectionTarget();
     try {
       const blob = await toPngBlob(composeCanvas(list, anns));
       await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
@@ -90,6 +98,6 @@
   }
 
   Object.assign(App, {
-    composeCanvas, toPngBlob, fileStamp, downloadBlob, savePng, copyImage, copyAll,
+    composeCanvas, toPngBlob, fileStamp, downloadBlob, selectionTarget, savePng, copyImage, copyAll,
   });
 })();

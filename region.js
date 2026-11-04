@@ -81,6 +81,6 @@
   }
 
   Object.assign(App, {
-    clearRegion, beginRegion, updateRegion, finishRegion, copyRegion, pasteRegion,
+    clearRegion, beginRegion, updateRegion, finishRegion, regionCanvas, copyRegion, pasteRegion,
   });
 })();

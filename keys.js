@@ -17,7 +17,10 @@
 })(typeof self !== 'undefined' ? self : this, function () {
   const LATIN_KEY = /^[a-z0-9=+-]$/i;
   const LETTER_OR_DIGIT_CODE = /^(?:Key([A-Z])|Digit([0-9]))$/;
-  const PUNCTUATION_CODES = Object.freeze({ Equal: '=', Minus: '-', Comma: ',' }); // Ctrl/Cmd+, opens settings
+  // Ctrl/Cmd+, opens settings; Ctrl/Cmd+Alt+[ / ] switch tabs (Option+[ types a quote mark on a Mac)
+  const PUNCTUATION_CODES = Object.freeze({
+    Equal: '=', Minus: '-', Comma: ',', BracketLeft: '[', BracketRight: ']',
+  });
 
   /**
    * @param {{key?: string, code?: string}} e a KeyboardEvent (or anything shaped like one)

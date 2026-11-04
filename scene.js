@@ -183,19 +183,36 @@
   // An arrow may carry a text label behind its tail (x1,y1). The label's font size follows the arrow's
   // head size, so a bigger arrow gets bigger text. `labelW`/`labelH` are the measured text size
   // (measured in draw.js); the box position is derived from the arrow, so it moves/turns with it.
-  const ARROW_LABEL_RATIO = 1.5; // font size relative to the arrow head size
+  const ARROW_LABEL_RATIO = 0.9; // font size relative to the arrow head size
+  const ARROW_LABEL_MIN = 14; // smallest label font, so thin arrows still get readable text
   const ARROW_LABEL_GAP = 12; // clear space between the tail and the label (world px)
-  const arrowLabelSize = (width) => Math.round(arrowHeadSize(width) * ARROW_LABEL_RATIO);
+  const arrowLabelSize = (width) => Math.max(ARROW_LABEL_MIN, Math.round(arrowHeadSize(width) * ARROW_LABEL_RATIO));
+
+  // Lines of a label line up on the side nearest the tail once the arrow is within 60 degrees of
+  // horizontal: an arrow pointing right has its label left of the tail, so the lines align right.
+  const ARROW_LABEL_SIDE_ALIGN = 0.5; // |cos| of the angle from horizontal
+
+  /** Unit vector from the head towards the tail (straight up for a zero-length arrow). */
+  function tailDirection(a) {
+    const dx = a.x1 - a.x2;
+    const dy = a.y1 - a.y2;
+    const len = Math.hypot(dx, dy);
+    return len === 0 ? { ux: 0, uy: -1 } : { ux: dx / len, uy: dy / len };
+  }
+
+  /** How the label's lines line up: 'right' for an arrow pointing right, 'left' pointing left, else 'center'. */
+  function arrowLabelAlign(a) {
+    const { ux } = tailDirection(a);
+    if (ux <= -ARROW_LABEL_SIDE_ALIGN) return 'right';
+    if (ux >= ARROW_LABEL_SIDE_ALIGN) return 'left';
+    return 'center';
+  }
 
   /** Box of an arrow's label, centred beyond the tail on the side away from the head; null if unlabelled. */
   function arrowLabelRect(a) {
     if (a.type !== 'arrow' || !a.label) return null;
     const { labelW: w, labelH: h } = a;
-    const dx = a.x1 - a.x2;
-    const dy = a.y1 - a.y2;
-    const len = Math.hypot(dx, dy);
-    const ux = len === 0 ? 0 : dx / len;
-    const uy = len === 0 ? -1 : dy / len; // zero-length arrow: label goes above the point
+    const { ux, uy } = tailDirection(a);
     // The box is centred on the line extending from the tail and sits so that this line enters it
     // `gap` from the tail. Its half-extent is measured along that line (not along the whole box), so a
     // long label keeps hugging the tail at any angle instead of drifting away as it grows.
@@ -513,6 +530,7 @@
     arrowHeadPoints,
     arrowHeadSize,
     arrowLabelSize,
+    arrowLabelAlign,
     arrowLabelRect,
     nextStepNumber,
     contrastColor,

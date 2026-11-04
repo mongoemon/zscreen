@@ -13,6 +13,7 @@
 //   i18n.js          UI strings + locale (pure; also used by main.js for the tray)
 //   i18n-dom.js      applies translations to the page + language switcher
 //   version-badge.js version number + changelog
+//   dialog-drag.js   move dialogs by dragging their header
 (() => {
   // PWA: register the service worker only when served over http(s) (not inside Electron's file://).
   if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
@@ -29,6 +30,7 @@
 
   App.setupLocalization();
   App.setupVersionBadge();
+  App.setupDialogDrag();
   App.buildSwatches();
   App.updateControls();
   window.addEventListener('resize', App.resizeCanvas);

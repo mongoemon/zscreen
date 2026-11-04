@@ -23,6 +23,12 @@ test('Thai digits and the zoom keys map to their physical keys', () => {
   assert.equal(Keys.shortcutKey({ key: 'ข', code: 'Minus' }), '-');
 });
 
+test('the tab-switching brackets map to their physical keys (Thai layout, macOS Option)', () => {
+  assert.equal(Keys.shortcutKey({ key: '[', code: 'BracketLeft' }), '[');
+  assert.equal(Keys.shortcutKey({ key: 'บ', code: 'BracketLeft' }), '[');
+  assert.equal(Keys.shortcutKey({ key: '‘', code: 'BracketRight' }), ']');
+});
+
 test('layouts that already produce Latin letters keep their logical meaning (AZERTY / Dvorak)', () => {
   assert.equal(Keys.shortcutKey({ key: 'z', code: 'KeyW' }), 'z');
   assert.equal(Keys.shortcutKey({ key: 'a', code: 'KeyQ' }), 'a');

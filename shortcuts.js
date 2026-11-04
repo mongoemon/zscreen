@@ -42,6 +42,7 @@
     action('save', 'image', 'image', 'sc.save', ['Mod+S']),
     action('copy', 'image', 'image', 'sc.copy', ['Mod+C']),
     action('copyAll', 'image', 'image', 'sc.copyAll', ['Mod+Alt+C']),
+    action('exportText', 'image', 'image', 'sc.exportText', ['Mod+Alt+X']),
     action('regionPaste', 'image', 'image', 'sc.regionPaste', ['Enter']),
     action('deleteSelected', 'image', 'image', 'sc.deleteSelected', ['Delete', 'Backspace']),
     action('fit', 'image', 'image', 'sc.fit', ['Mod+0']),
@@ -50,6 +51,10 @@
     action('toggleHistory', 'image', 'image', 'sc.toggleHistory', ['Mod+Alt+H']),
     action('arrange', 'image', 'image', 'sc.arrange', []),
     action('clearAll', 'image', 'image', 'sc.clearAll', []),
+    action('newTab', 'image', 'image', 'sc.newTab', ['Mod+Alt+T']),
+    action('closeTab', 'image', 'image', 'sc.closeTab', ['Mod+Alt+W']),
+    action('nextTab', 'image', 'image', 'sc.nextTab', ['Mod+Alt+]']),
+    action('prevTab', 'image', 'image', 'sc.prevTab', ['Mod+Alt+[']),
 
     action('toolSelect', 'image', 'tools', 'sc.toolSelect', ['V']),
     action('toolRegion', 'image', 'tools', 'sc.toolRegion', ['C']),
