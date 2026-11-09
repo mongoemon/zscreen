@@ -41,9 +41,10 @@ function useFiles(files) {
 // ---------- load / transcribe ----------
 async function load({ files }) {
   if (files) useFiles(files);
-  // the model may be nowhere (the web build has none): say so before the library reports a vague error
+  // the model may be nowhere (the web build has none): say so before the library reports a vague error.
+  // A missing file can still come back 200 as the site's index.html, so it must also read as JSON.
   const probe = await env.fetch(`${env.localModelPath}${Cfg.MODEL.id}/${Cfg.MODEL_FILES[0]}`).catch(() => null);
-  if (!probe || !probe.ok) {
+  if (!probe || !probe.ok || !(await probe.json().then(() => true, () => false))) {
     self.postMessage({ type: 'missing' });
     return;
   }

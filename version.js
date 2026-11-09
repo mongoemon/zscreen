@@ -17,6 +17,18 @@
   /** @type {readonly Release[]} newest first */
   const CHANGELOG = Object.freeze([
     Object.freeze({
+      version: '1.7.2',
+      date: '2026-11-10',
+      changes: Object.freeze({
+        th: Object.freeze([
+          'พูดเป็นข้อความ (เว็บ): แก้ให้หน้าต่างแสดงวิธีเชื่อมต่อโฟลเดอร์โมเดล แทนข้อความโหลดไม่สำเร็จ',
+        ]),
+        en: Object.freeze([
+          'Speech to text (web): the dialog now shows how to connect the model folder instead of a load error',
+        ]),
+      }),
+    }),
+    Object.freeze({
       version: '1.7.1',
       date: '2026-11-10',
       changes: Object.freeze({
