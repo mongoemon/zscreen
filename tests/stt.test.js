@@ -95,28 +95,13 @@ test('the library and engine are in stt/, and the versions match the license not
   assert.ok(notices.includes(`${SttConfig.MODEL.id}@${SttConfig.MODEL.revision}`), 'the notices name the pinned model');
 });
 
-test('the web serves big model files in parts under 25 MiB, and partsOf puts them back in order', () => {
-  assert.ok(SttConfig.PART_BYTES <= 25 * 1024 * 1024);
-  assert.equal(SttConfig.partCount(2227), 0);
-  assert.equal(SttConfig.partCount(SttConfig.PART_BYTES), 0);
-  assert.equal(SttConfig.partCount(156750845), 8);
-  const parts = SttConfig.partsOf('onnx/x.onnx', { size: 2 * SttConfig.PART_BYTES + 5, parts: 3 });
-  assert.deepEqual(parts.map((p) => p.path), ['onnx/x.onnx.part0', 'onnx/x.onnx.part1', 'onnx/x.onnx.part2']);
-  assert.deepEqual(parts.map((p) => p.size), [SttConfig.PART_BYTES, SttConfig.PART_BYTES, 5]);
-  assert.deepEqual(SttConfig.partsOf('config.json', { size: 10, parts: 0 }), [{ path: 'config.json', size: 10 }]);
-});
-
-test('the downloaded model has its own cache, named after the model revision', () => {
-  assert.equal(SttConfig.cacheName(), `zcreenshot-stt-${SttConfig.MODEL.revision.slice(0, 7)}`);
-  assert.ok(read('sw.js').includes(`!k.startsWith('${SttConfig.CACHE_PREFIX}')`), 'kept when the app shell cache changes');
-});
-
-test('the web build and its deploy include the model', () => {
+test('the web build and its deploy leave the model out (the site never serves it)', () => {
   const pkg = JSON.parse(read('package.json'));
-  assert.match(pkg.scripts['build:web'], /fetch-stt-model\.js && node scripts\/build-web\.js/);
-  assert.match(read('.github/workflows/deploy.yml'), /node scripts\/fetch-stt-model\.js && node scripts\/make-icon\.js && node scripts\/build-web\.js/);
-  const build = read('scripts/build-web.js');
-  assert.ok(build.includes('Stt.partsOf(name, entry)') && build.includes('Stt.PARTS_FILE'), 'cuts the files and lists them');
+  assert.ok(!pkg.scripts['build:web'].includes('fetch-stt-model'));
+  assert.ok(!read('.github/workflows/deploy.yml').includes('fetch-stt-model'));
+  const html = read('index.html');
+  assert.ok(!html.includes('stt-get'), 'no download button');
+  assert.ok(html.includes('id="stt-connect"'), 'the folder setup is still there');
 });
 
 test('the desktop app ships stt/ with the whole model files', () => {

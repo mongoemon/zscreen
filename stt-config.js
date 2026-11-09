@@ -22,9 +22,9 @@
   });
 
   /**
-   * Library + engine ship with the app (folder stt/), and so does the model (~250 MB, stt/models/):
-   * whole files in the desktop app; on the web cut into parts (see below), downloaded on the user's
-   * go-ahead and kept in Cache Storage. Without either, the dialog asks for a folder with the files.
+   * Library + engine ship with the app (folder stt/). The model (~240 MB, stt/models/) ships only
+   * with the desktop app; the web dialog asks for a folder with the files, which the user gets from
+   * Hugging Face themselves (the site does not serve the model).
    */
   const DIR = 'stt';
   const MODELS_DIR = `${DIR}/models`;
@@ -45,28 +45,6 @@
     'onnx/encoder_model_quantized.onnx',
     'onnx/decoder_model_merged_quantized.onnx',
   ]);
-
-  /**
-   * Web build: model files bigger than this are served as `<file>.part0`, `.part1` … (Cloudflare
-   * Pages serves files up to 25 MiB); PARTS_FILE in the model folder lists {file: {size, parts}}.
-   */
-  const PART_BYTES = 20 * 1024 * 1024;
-  const PARTS_FILE = 'parts.json';
-  /** Cache Storage name for the downloaded model; a new model revision gets a new cache. */
-  const CACHE_PREFIX = 'zcreenshot-stt-';
-  const cacheName = () => `${CACHE_PREFIX}${MODEL.revision.slice(0, 7)}`;
-
-  /** How many parts a file of `size` bytes is cut into (0 = served whole). */
-  const partCount = (size) => (size > PART_BYTES ? Math.ceil(size / PART_BYTES) : 0);
-
-  /** Paths (inside the model folder) the web serves for one model file, with each one's size. */
-  function partsOf(name, { size, parts }) {
-    if (!parts) return [{ path: name, size }];
-    return Array.from({ length: parts }, (_, i) => ({
-      path: `${name}.part${i}`,
-      size: Math.min(PART_BYTES, size - i * PART_BYTES),
-    }));
-  }
 
   /**
    * Spoken language choices. There is no "detect": Transformers.js then assumes English and
@@ -156,12 +134,6 @@
     MODELS_DIR,
     FILES,
     MODEL_FILES,
-    PART_BYTES,
-    PARTS_FILE,
-    CACHE_PREFIX,
-    cacheName,
-    partCount,
-    partsOf,
     LANGUAGES,
     SAMPLE_RATE,
     CHUNK_SECONDS,

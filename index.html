@@ -317,8 +317,7 @@
   </div>
 
   <!-- Speech to text: record the microphone, Whisper turns it into text to copy or save (stt.js).
-       Web, first use: an offer to download the model once. The folder setup shows only when a
-       build has no model at all. -->
+       The web version has no model: the folder setup says where to get the files and connects them. -->
   <div id="stt-dialog" class="modal" role="dialog" aria-modal="true" aria-labelledby="stt-title" hidden>
     <div class="modal-card">
       <div class="modal-head">
@@ -326,11 +325,6 @@
         <button id="stt-close" class="icon-btn" data-i18n-title="dialog.close"><svg class="icon"><use href="#i-close"/></svg></button>
       </div>
       <div class="modal-body">
-        <section id="stt-get" class="stt-setup" hidden>
-          <h3 data-i18n="stt.getTitle"></h3>
-          <p class="note" data-i18n="stt.getIntro"></p>
-          <p class="stt-get-row"><button id="stt-get-start" class="primary" data-i18n-title="stt.getStartTitle"><svg class="icon"><use href="#i-download"/></svg> <span data-i18n="stt.getStart"></span></button> <span id="stt-get-size" class="muted"></span></p>
-        </section>
         <section id="stt-setup" class="stt-setup" hidden>
           <h3 data-i18n="stt.setupTitle"></h3>
           <p class="note" data-i18n="stt.setupIntro"></p>

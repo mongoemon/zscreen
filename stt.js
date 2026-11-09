@@ -3,8 +3,7 @@
 // Speech to text: records the microphone and turns Thai or English speech into text in a dialog,
 // to edit, copy or save as .txt. Whisper runs in a worker on this device (stt/stt-worker.js, see
 // stt-config.js); the sound never leaves it. The desktop app has the model in stt/models/; the web
-// version downloads it from the site once, when the user presses the button, and keeps it in the
-// browser (see stt/stt-worker.js); a web build without it asks for a folder with the model files.
+// version has none and asks for a folder with the model files, which the user gets themselves.
 (() => {
   const { $, toast } = App;
   const Cfg = SttConfig;
@@ -21,7 +20,6 @@
 
   const dialog = $('stt-dialog');
   const setup = $('stt-setup');
-  const offer = $('stt-get');
   const setupError = $('stt-setup-error');
   const folderInput = $('stt-folder');
   const langSelect = $('stt-lang');
@@ -35,8 +33,7 @@
   const info = $('stt-info');
 
   // ---------- model (worker) ----------
-  /** @type {{worker: Worker, ready: boolean, busy: boolean, loaded: Map<string, number[]>,
-   *   downloaded: Map<string, number[]>} | null} */
+  /** @type {{worker: Worker, ready: boolean, busy: boolean, loaded: Map<string, number[]>} | null} */
   let engine = null;
   /** Model files picked in the web version: {[modelFile]: File}, reused while the page stays open. */
   let pickedFiles = null;
@@ -73,7 +70,6 @@
       ready: false,
       busy: false,
       loaded: new Map(),
-      downloaded: new Map(),
     };
     engine = current;
     current.worker.onmessage = ({ data }) => { if (engine === current) onWorkerMessage(current, data); };
@@ -90,45 +86,16 @@
     updateControls();
   }
 
-  const toMB = (bytes) => Math.round(bytes / 1e6);
-
-  function showDownloadProgress(downloaded) {
-    let done = 0;
-    let total = 0;
-    for (const [d, t] of downloaded.values()) {
-      done += d;
-      total += t;
-    }
-    setStatus('stt.statusDownloading', { percent: Math.round((done / total) * 100), done: toMB(done), total: toMB(total) }, done / total);
-  }
-
-  /** Web, first use: the user agrees to download the model once (or it resumes what is left). */
-  function downloadModel() {
-    if (!engine) return;
-    offer.hidden = true;
-    setStatus('stt.statusDownloading', { percent: 0, done: 0, total: '…' }, 0);
-    engine.worker.postMessage({ type: 'load', download: true });
-  }
-
   function onWorkerMessage(current, data) {
     if (data.type === 'progress' && current.ready) return; // a late report must not hide what is going on now
-    if (data.type === 'progress' && data.phase === 'download') {
-      current.downloaded.set(data.file, [data.loaded, data.total]);
-      showDownloadProgress(current.downloaded);
-    } else if (data.type === 'progress') {
+    if (data.type === 'progress') {
       if (data.total) current.loaded.set(data.file, [data.loaded, data.total]);
       const progress = loadProgress(current.loaded);
       if (progress === null) setStatus('stt.statusLoading');
       else setStatus('stt.statusLoadingPercent', { percent: Math.round(progress * 100) }, progress);
-    } else if (data.type === 'download') {
-      setStatus(null);
-      $('stt-get-size').textContent = I18n.t('stt.getSize', { size: toMB(data.bytes) });
-      offer.hidden = false;
-      info.textContent = '';
     } else if (data.type === 'ready') {
       current.ready = true;
       setup.hidden = true;
-      offer.hidden = true;
       setStatus(null);
       info.textContent = I18n.t('stt.ready');
     } else if (data.type === 'missing') {
@@ -348,7 +315,6 @@
     // the model takes a few hundred MB: free it unless a recording is still being converted
     if (engine && !engine.busy) stopEngine();
     setStatus(null);
-    offer.hidden = true;
     dialog.hidden = true;
     button.focus();
   }
@@ -382,7 +348,6 @@
   $('stt-close').addEventListener('click', closeDialog);
   button.addEventListener('click', openSpeechToText);
   recordButton.addEventListener('click', () => (session ? stopRecording() : startRecording()));
-  $('stt-get-start').addEventListener('click', downloadModel);
   $('stt-connect').addEventListener('click', () => folderInput.click());
   folderInput.addEventListener('change', connectFolder);
   langSelect.addEventListener('change', () => { languagePicked = true; });

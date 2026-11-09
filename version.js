@@ -17,6 +17,18 @@
   /** @type {readonly Release[]} newest first */
   const CHANGELOG = Object.freeze([
     Object.freeze({
+      version: '1.7.1',
+      date: '2026-11-10',
+      changes: Object.freeze({
+        th: Object.freeze([
+          'พูดเป็นข้อความ (เว็บ): เลิกดาวน์โหลดโมเดลจากเว็บนี้ หน้าต่างบอกให้ดาวน์โหลด 7 ไฟล์จาก Hugging Face เองแล้วเชื่อมต่อโฟลเดอร์ · โมเดลที่เคยดาวน์โหลดไว้ในเบราว์เซอร์ (~250 MB) จะถูกลบให้อัตโนมัติ · Desktop ยังมีโมเดลในตัวเหมือนเดิม',
+        ]),
+        en: Object.freeze([
+          'Speech to text (web): the model is no longer downloaded from this site; the dialog says to download the 7 files from Hugging Face and connect the folder · a model downloaded earlier (~250 MB) is removed from the browser automatically · the desktop app still has the model built in',
+        ]),
+      }),
+    }),
+    Object.freeze({
       version: '1.7.0',
       date: '2026-11-09',
       changes: Object.freeze({

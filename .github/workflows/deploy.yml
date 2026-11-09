@@ -70,12 +70,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      # the speech-to-text model (~240 MB, not in git) goes into the web build; cached between runs
-      - uses: actions/cache@v4
-        with:
-          path: stt/models
-          key: stt-model-${{ hashFiles('stt-config.js') }}
-      - run: node scripts/fetch-stt-model.js && node scripts/make-icon.js && node scripts/build-web.js
+      # the web build has no speech-to-text model (web users connect their own copy)
+      - run: node scripts/make-icon.js && node scripts/build-web.js
       - name: Ensure Pages project
         run: npx wrangler@4 pages project create zscreen --production-branch=main || true
         env:

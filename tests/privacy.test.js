@@ -105,16 +105,11 @@ test('speech to text runs Whisper from the app\'s own files and keeps the model 
   // the picked folder is served from memory; a missing file is a 404, never a request elsewhere
   assert.ok(worker.includes("const notFound = () => new Response(null, { status: 404, statusText: 'Not Found' });"));
   assert.match(worker, /env\.fetch = async \(url\) => \{\s*const file = files\[nameOf\(url\)\];\s*return file \? fileResponse\(file\) : notFound\(\);/);
-  // its one request goes next to the worker (stt/models/ of the app's own site), never elsewhere
-  assert.deepEqual(worker.replace(/env\.fetch\(/g, '').match(/\bfetch\([^)]*\)/g), ['fetch(here(path)'], 'only fetch(here(path)) — the regex stops at the first )');
-  // the downloaded model sits in one named cache (listed in the README), and only there
-  assert.deepEqual(worker.match(/caches\.open\([^)]*\)/g), ['caches.open(Cfg.cacheName()']);
-  assert.ok(!/indexedDB|localStorage|sessionStorage/.test(worker), 'no other storage');
-  assert.ok(privacySection.includes(`${require('../stt-config.js').CACHE_PREFIX}`), 'README privacy section names the model cache');
-  // the service worker leaves the model to that cache and keeps it across app updates
-  const sw = read('sw.js');
-  assert.ok(sw.includes("if (new URL(event.request.url).pathname.includes('/stt/models/')) return;"));
-  assert.ok(sw.includes("!k.startsWith('zcreenshot-stt-')"));
+  // the worker fetches nothing itself (the library reads stt/models/ next to it), and stores nothing
+  assert.equal(worker.replace(/env\.fetch\(/g, '').match(/\bfetch\(/g), null, 'no fetch() of its own');
+  assert.ok(!/caches\.|indexedDB|localStorage|sessionStorage/.test(worker), 'no storage');
+  // the service worker keeps the model out of the app cache
+  assert.ok(read('sw.js').includes("if (new URL(event.request.url).pathname.includes('/stt/models/')) return;"));
 });
 
 test('everything the app saves is listed in the README privacy section', () => {
