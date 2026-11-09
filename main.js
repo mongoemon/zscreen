@@ -9,6 +9,10 @@ const { createGlobalShortcuts } = require('./global-shortcuts.js');
 
 const ICON_PATH = path.join(__dirname, 'build', 'icon.png');
 
+// SharedArrayBuffer lets speech to text (stt/) run Whisper on several threads, about 3x faster.
+// The window only loads the app's own files, so no other site's script can use it.
+app.commandLine.appendSwitch('enable-features', 'SharedArrayBuffer');
+
 /** @type {BrowserWindow | null} */
 let win = null;
 /** @type {Tray | null} */

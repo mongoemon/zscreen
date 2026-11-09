@@ -22,6 +22,9 @@ const VENDORED = Object.freeze({
   'ocr/tesseract-core-simd-lstm.wasm.js': 'tesseract.js-core',
   'ocr/eng.traineddata.gz': 'tessdata_best_int',
   'ocr/tha.traineddata.gz': 'tessdata_best_int',
+  'stt/transformers.min.js': 'Transformers.js',
+  'stt/ort-wasm-simd-threaded.mjs': 'ONNX Runtime Web',
+  'stt/ort-wasm-simd-threaded.wasm': 'ONNX Runtime Web',
 });
 
 test('each bundled library is listed with the version the README names', () => {
@@ -43,6 +46,7 @@ test('the full license texts are included, not just links', () => {
     assert.match(notices, new RegExp(`^--- D\\.\\d+ ${lib}`, 'm'), `license text of ${lib}`);
   }
   assert.match(notices, /based in part on the work of the Independent\s+JPEG\s+Group/, 'the IJG acknowledgement'); 
+  assert.match(notices, /Copyright \(c\) 2022 OpenAI\n\nPermission is hereby granted/, 'the Whisper model license');
   assert.match(notices, /https:\/\/sourceforge\.net\/projects\/lame\/files\/lame\/3\.100\//, 'where to get the LAME source');
 });
 

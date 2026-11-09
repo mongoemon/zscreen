@@ -32,6 +32,7 @@
 | บันทึกหน้าจอ: สิทธิ์ | macOS ต้องอนุญาต Screen Recording ให้แอปใน System Settings ครั้งแรก | เบราว์เซอร์ถามทุกครั้งที่เริ่มบันทึก (macOS ต้องอนุญาต Screen Recording ให้ตัวเบราว์เซอร์) |
 | บันทึกเป็น MP4 | ได้ถ้าระบบปฏิบัติการเข้ารหัส H.264 ได้ | ขึ้นกับเบราว์เซอร์ (ถ้าไม่รองรับจะมีแค่ GIF / WebM / ไฟล์ต้นฉบับ) |
 | การบันทึกไฟล์ (PNG / GIF / วิดีโอ) | มักมีหน้าต่างให้เลือกตำแหน่งก่อนบันทึก | ดาวน์โหลดตามการตั้งค่าของเบราว์เซอร์ (มักลงโฟลเดอร์ Downloads) |
+| พูดเป็นข้อความ | มีโมเดล Whisper (~240 MB) มาในตัวติดตั้ง กดใช้ได้เลย · ทำงานหลายเธรด | ครั้งแรกกด **ดาวน์โหลดและเริ่มใช้** ครั้งเดียว (~250 MB จากเว็บนี้) เบราว์เซอร์เก็บไว้ ครั้งต่อไปใช้ได้ทันทีและออฟไลน์ได้ |
 | จำนวนหน้าต่าง | เปิดได้ครั้งละ 1 หน้าต่าง เปิดซ้ำจะดึงหน้าต่างเดิมขึ้นมา | เปิดหลายแท็บได้ แต่ละแท็บแยกกัน |
 
 > การเปิดไฟล์ `index.html` ตรง ๆ (หัวข้อ 4 ด้านล่าง) ทำงานแบบ Web แต่ติดตั้งเป็น PWA ไม่ได้ และปุ่ม Paste / Copy อาจใช้ไม่ได้
@@ -182,6 +183,36 @@ npm run serve:web   # เปิดเซิร์ฟเวอร์ที่ htt
 - ทำงานในเครื่องทั้งหมด ไม่ส่งรูปไปที่ไหน — ใช้ [Tesseract.js](https://github.com/naptha/tesseract.js) ที่มากับแอป
 - ค่าที่ใช้ประมวลผล (ไลบรารี เวอร์ชัน ภาษา โมเดล OEM / PSM พารามิเตอร์ และการขยายรูป) ดูได้ในหน้าต่าง **ตั้งค่า** หัวข้อ *การอ่านข้อความจากรูป (OCR)* ตอนนี้ยังแก้ไขไม่ได้ ค่าทั้งหมดอยู่ใน `ocr-config.js`
 
+### พูดเป็นข้อความ (Speech to text)
+
+1. กดปุ่ม **พูดเป็นข้อความ** บนแถบเครื่องมือ (ไอคอนไมค์มีบรรทัด ข้างปุ่มดึงข้อความจากรูป) หรือ `Ctrl/Cmd + Alt + D`
+2. เลือก **ภาษาที่พูด**: *ไทย* (พูดคำอังกฤษปนได้) หรือ *English*
+3. กด **เริ่มพูด** แล้วพูด (ครั้งแรกระบบอาจถามสิทธิ์ไมโครโฟน) · ระหว่างอัดจะเห็นเวลาและระดับเสียง · กด **หยุดแล้วแปลงเป็นข้อความ** เมื่อพูดจบ
+4. ข้อความจะขึ้นในกล่องที่แก้ไขได้ อัดหลายครั้งจะต่อท้ายเป็นบรรทัดใหม่ · กด **คัดลอกข้อความ**, **บันทึกเป็น .txt** หรือ **ล้างข้อความ**
+
+- ใช้โมเดล [Whisper small](https://huggingface.co/openai/whisper-small) ของ OpenAI ผ่าน [Transformers.js](https://github.com/huggingface/transformers.js) ทำงานในเครื่องทั้งหมด **เสียงไม่ถูกส่งไปที่ไหน**
+- แปลงหลังกดหยุด (ไม่ใช่แบบเรียลไทม์) · ใช้เวลาประมาณครึ่งหนึ่งของความยาวเสียงบนเครื่องรุ่นใหม่ (ครั้งแรกหลังเปิดหน้าต่างต้องโหลดโมเดลก่อนไม่กี่วินาที) · อัดได้ครั้งละไม่เกิน 30 นาที (เสียง 30 นาทีใช้เวลาแปลงราว 10 นาที)
+- ไม่มีโหมด "ตรวจภาษาอัตโนมัติ" เพราะไลบรารีจะถือว่าเป็นอังกฤษแล้ว**แปล**เสียงไทยเป็นอังกฤษ จึงให้เลือกภาษาเอง
+- ผลลัพธ์อาจผิดได้ (ชื่อเฉพาะ ศัพท์เทคนิค เสียงรบกวน) ตรวจทานก่อนใช้
+- ปิดหน้าต่างแล้วแอปจะคืนหน่วยความจำของโมเดล (หลายร้อย MB)
+
+**Desktop**: มีโมเดลมาในตัวติดตั้งแล้ว ใช้ได้ทันทีโดยไม่ต้องต่ออินเทอร์เน็ต
+
+**Web**: ไม่ต้องตั้งค่าอะไร ครั้งแรกที่เปิดหน้าต่าง **พูดเป็นข้อความ** จะมีปุ่ม **ดาวน์โหลดและเริ่มใช้** (โมเดล ~250 MB จากเว็บนี้เอง ควรใช้ Wi-Fi) กดครั้งเดียว เบราว์เซอร์จะเก็บโมเดลไว้ (Cache Storage `zcreenshot-stt-…`) ครั้งต่อไปพร้อมใช้ในไม่กี่วินาทีและใช้ออฟไลน์ได้ · ถ้าโหลดค้างกลางทาง กดใหม่จะโหลดต่อจากส่วนที่ได้แล้ว · อัปเดตแอปไม่ต้องโหลดโมเดลใหม่ (นอกจากเปลี่ยนรุ่นโมเดล) · ลบได้ด้วยการล้างข้อมูลเว็บไซต์ในเบราว์เซอร์
+
+ถ้าเว็บที่โฮสต์ไม่มีไฟล์โมเดล (เช่น เปิด `index.html` จากไฟล์ในเครื่อง) หน้าต่างจะบอกวิธีหาไฟล์ 7 ไฟล์ของ `onnx-community/whisper-small` มาไว้ในโฟลเดอร์เดียว แล้วกด **เชื่อมต่อโฟลเดอร์โมเดล** แทน
+
+### คลิปบอร์ดข้อความ (เก็บข้อความไว้ใช้ซ้ำ)
+
+1. กดปุ่ม **คลิปบอร์ดข้อความ** บนแถบเครื่องมือ (ไอคอนคลิปบอร์ดมีบรรทัด ข้างปุ่มพูดเป็นข้อความ) หรือ `Ctrl/Cmd + Alt + K`
+2. พิมพ์หรือวางข้อความในกล่อง แล้วกด **เก็บข้อความ** (หรือ `Ctrl/Cmd + Enter`)
+3. **คลิกข้อความในรายการเพื่อคัดลอก** ไปวางที่อื่นได้ทันที · กดไอคอนถังขยะเพื่อลบทีละข้อความ หรือ **ลบทั้งหมด**
+
+- เก็บได้**สูงสุด 10 ข้อความ** (ข้อความใหม่อยู่บนสุด) เมื่อครบแล้วต้องลบข้อความเก่าก่อน แอปจะไม่ลบให้เอง
+- เก็บข้อความเดิมซ้ำ จะย้ายข้อความนั้นขึ้นไปบนสุดแทนการเพิ่มซ้ำ
+- หน้าต่าง **ข้อความจากรูป** (OCR) และ **พูดเป็นข้อความ** มีปุ่ม **เก็บไว้ใช้ซ้ำ** ส่งข้อความในกล่องเข้ามาเก็บได้เลย
+- ข้อความถูกเก็บในเครื่องนี้ (localStorage `zcreenshot.snippets`) **ปิดแอปหรือรีเฟรชแล้วยังอยู่** ทั้ง Desktop และ Web (Web แยกตามเบราว์เซอร์/เครื่อง) ไม่ถูกส่งไปที่ไหน
+
 ### ปุ่มลัด (ปรับเองได้)
 
 กดปุ่ม **ตั้งค่า** (ไอคอนเฟือง) หรือ `Ctrl/Cmd + ,` เพื่อเปลี่ยนปุ่มลัด: กด **เปลี่ยน** แล้วกดปุ่มใหม่, **ค่าเริ่มต้น** คืนค่าทีละรายการ, **ปิด** เพื่อไม่ใช้ปุ่มลัดนั้น และปุ่ม **คืนค่าเริ่มต้นทั้งหมด (Restore)** ด้านล่างของหน้าต่าง
@@ -200,6 +231,8 @@ Web เก็บค่าไว้ในเบราว์เซอร์ (local
 | | Undo / บันทึก PNG / คัดลอก | `Ctrl/Cmd + Z` / `S` / `C` |
 | | คัดลอกทุกรูป | `Ctrl/Cmd + Alt + C` |
 | | ดึงข้อความจากรูป (OCR) | `Ctrl/Cmd + Alt + X` |
+| | พูดเป็นข้อความ | `Ctrl/Cmd + Alt + D` |
+| | คลิปบอร์ดข้อความ | `Ctrl/Cmd + Alt + K` |
 | | วางส่วนที่เลือกเป็นรูปใหม่ | `Enter` |
 | | ลบที่เลือก | `Delete` / `Backspace` |
 | | พอดีหน้าจอ / ซูมเข้า / ซูมออก | `Ctrl/Cmd + 0` / `+` / `-` |
@@ -248,12 +281,14 @@ Web เก็บค่าไว้ในเบราว์เซอร์ (local
 | วิดีโอที่บันทึกหน้าจอ | RAM จนกว่าจะปิดหน้าแก้ไขวิดีโอ | ปิดหน้าแก้ไขวิดีโอ (ถ้ายังไม่ได้บันทึก แอปจะถามก่อน) |
 | การแปลงเป็น GIF / MP4 / WebM | ประมวลผลในเครื่องทั้งหมด ไม่อัปโหลดไปไหน | – |
 | การดึงข้อความจากรูป (OCR) และข้อความที่ได้ | ประมวลผลในเครื่อง (worker ในแอป) ไม่อัปโหลด · ไฟล์โมเดลภาษามากับแอปและไม่ถูกเก็บลง IndexedDB | ปิดหน้าต่างข้อความจากรูป |
+| เสียงที่พูดในหน้าต่างพูดเป็นข้อความ และข้อความที่ได้ | เสียงอยู่ใน RAM แค่ระหว่างอัดจนแปลงเสร็จ แล้วทิ้ง (ไม่บันทึกเป็นไฟล์) · ประมวลผลในเครื่อง (worker ในแอป) ไม่อัปโหลด · โมเดลอ่านจาก `stt/models/` ของแอป (Desktop) หรือโฟลเดอร์ที่คุณเลือก (Web) · เวอร์ชันเว็บดาวน์โหลดโมเดลจากเว็บนี้เมื่อคุณกดปุ่ม แล้วเก็บใน Cache Storage `zcreenshot-stt-…` (ไม่มีเสียงหรือข้อความของคุณ) | ข้อความ: รีเฟรช/ปิดแอป หรือกดล้างข้อความ · โฟลเดอร์ที่เลือก (Web): รีเฟรชหรือปิดแท็บ |
 | ภาพตัวอย่างหน้าจอ/หน้าต่างในหน้าต่างบันทึก (Desktop) | RAM | ปิดหน้าต่างบันทึก |
 | ประวัติคลิปบอร์ด (Desktop) | RAM — ระหว่างที่แอปเปิดอยู่ แอปจะอ่านคลิปบอร์ดทุก 1 วินาที เพื่อเก็บ**เฉพาะรูปภาพ** 10 รูปล่าสุด (ไม่เก็บข้อความ) | ออกจากแอป, กด **ล้างประวัติ** หรือลบทีละรูป |
 | ประวัติรูป (Web) | RAM ของแท็บนั้น | รีเฟรชหรือปิดแท็บ |
+| ข้อความที่คุณกดเก็บในคลิปบอร์ดข้อความ (สูงสุด 10 ข้อความ) | localStorage `zcreenshot.snippets` ในเครื่องนี้ (เก็บเฉพาะข้อความที่คุณกดเก็บเอง ไม่อ่านคลิปบอร์ดของระบบ) | กดลบทีละข้อความ, **ลบทั้งหมด** หรือล้างข้อมูลเว็บไซต์ / ลบโฟลเดอร์ข้อมูลของแอป |
 | ไฟล์ที่คุณกดบันทึก (PNG / GIF / วิดีโอ) | ตำแหน่งที่คุณเลือก หรือ Downloads | คุณจัดการเอง |
 
-### สิ่งที่แอปบันทึกลงเครื่อง (เฉพาะการตั้งค่า)
+### สิ่งที่แอปบันทึกลงเครื่อง (การตั้งค่า และข้อความที่คุณกดเก็บไว้)
 
 | ชื่อ | เก็บที่ | เนื้อหา |
 |------|---------|---------|
@@ -261,17 +296,19 @@ Web เก็บค่าไว้ในเบราว์เซอร์ (local
 | `zcreenshot-width` | localStorage | ความหนาเส้นที่ใช้ล่าสุด |
 | `zcreenshot-history-visible` | localStorage (Web) | แสดง/ซ่อนแผงประวัติรูป |
 | `zcreenshot.shortcuts` | localStorage | ปุ่มลัดที่คุณเปลี่ยนเอง |
+| `zcreenshot.snippets` | localStorage | ข้อความในคลิปบอร์ดข้อความ (สูงสุด 10) เช่น `[{"id":1,"text":"ขอบคุณครับ","time":1762660000000}]` |
 | `zcreenshot.blankPage` | localStorage | ขนาด / DPI / สีพื้นหลังของหน้าเปล่าที่สร้างล่าสุด เช่น `{"width":794,"height":1123,"dpi":96,"color":"#ffffff","transparent":false}` |
 | `history-panel.json` | โฟลเดอร์ข้อมูลของแอป (Desktop) | แสดง/ซ่อนแผงประวัติคลิปบอร์ด เช่น `{"visible":true}` |
 | `shortcuts.json` | โฟลเดอร์ข้อมูลของแอป (Desktop) | ปุ่มลัดทั้งระบบที่คุณเปลี่ยนเอง เช่น `{"record":["Mod+Alt+r"]}` |
 
-นอกจากนี้ เวอร์ชันเว็บเก็บ**ไฟล์ของตัวแอป**ไว้ใน Cache Storage ของเบราว์เซอร์ เพื่อให้เปิดใช้แบบออฟไลน์ได้ (ไม่มีข้อมูลของคุณ) ส่วนแอป Desktop เก็บข้อมูลเบราว์เซอร์ของตัวเอง (localStorage และแคชไฟล์แอปข้างต้น) ไว้ในโฟลเดอร์ข้อมูลของแอป เช่น `%APPDATA%\Zcreenshot` บน Windows หรือ `~/Library/Application Support/Zcreenshot` บน macOS (ถ้ารันจากซอร์สโค้ด ชื่อโฟลเดอร์จะเป็น `zcreenshot`) ลบโฟลเดอร์นี้หรือล้างข้อมูลเว็บไซต์ในเบราว์เซอร์ได้ทุกเมื่อ
+นอกจากนี้ เวอร์ชันเว็บเก็บ**ไฟล์ของตัวแอป**ไว้ใน Cache Storage ของเบราว์เซอร์ เพื่อให้เปิดใช้แบบออฟไลน์ได้ (ไม่มีข้อมูลของคุณ) และถ้าคุณกดดาวน์โหลดโมเดลพูดเป็นข้อความ จะเก็บโมเดล (~250 MB) ไว้ใน cache แยกชื่อ `zcreenshot-stt-<รุ่นโมเดล>` ส่วนแอป Desktop เก็บข้อมูลเบราว์เซอร์ของตัวเอง (localStorage และแคชไฟล์แอปข้างต้น) ไว้ในโฟลเดอร์ข้อมูลของแอป เช่น `%APPDATA%\Zcreenshot` บน Windows หรือ `~/Library/Application Support/Zcreenshot` บน macOS (ถ้ารันจากซอร์สโค้ด ชื่อโฟลเดอร์จะเป็น `zcreenshot`) ลบโฟลเดอร์นี้หรือล้างข้อมูลเว็บไซต์ในเบราว์เซอร์ได้ทุกเมื่อ
 
 ### การเชื่อมต่ออินเทอร์เน็ต
 
 - **Web**: เชื่อมต่อเฉพาะเซิร์ฟเวอร์ที่โฮสต์แอป เพื่อโหลดและอัปเดต**ไฟล์ของตัวแอป** ไม่มีการส่งรูป วิดีโอ หรือข้อมูลใดๆ ของคุณ
 - **Desktop**: ไม่มีการเชื่อมต่อเลย (ปิดการดาวน์โหลดพจนานุกรมตรวจคำสะกดของ Electron ไว้ด้วย)
 - ลิงก์ GitHub และ Ko-fi (สนับสนุนผู้พัฒนา) บนแถบเครื่องมือจะเปิดก็ต่อเมื่อคุณคลิกเท่านั้น (Desktop เปิดในเบราว์เซอร์ของเครื่อง)
+- โมเดลพูดเป็นข้อความของเวอร์ชันเว็บ ดาวน์โหลดจาก**เซิร์ฟเวอร์เดียวกับที่โฮสต์แอป**เท่านั้น และเฉพาะเมื่อคุณกดปุ่มดาวน์โหลด
 
 ### พิสูจน์ (ตรวจสอบได้ด้วยตัวเอง)
 
@@ -281,7 +318,7 @@ Web เก็บค่าไว้ในเบราว์เซอร์ (local
    default-src 'self'; img-src 'self' blob: data:; media-src 'self' blob:; style-src 'self'; script-src 'self' 'wasm-unsafe-eval'; worker-src 'self' blob:
    ```
 
-   ไม่มี `connect-src` เบราว์เซอร์จึงใช้ `default-src 'self'` แทน (worker ของ OCR โหลดไฟล์ภาษาจาก `ocr/` ของแอปเองได้เพราะเป็น `'self'`) ผลคือ `fetch`, XHR, WebSocket และ `sendBeacon` ไปยังเซิร์ฟเวอร์อื่น**ถูกเบราว์เซอร์บล็อก** แม้จะมีโค้ดพยายามส่งก็ตาม (รวมถึงไลบรารีภายนอก) และทุกรายการอนุญาตเฉพาะ `'self'`, `blob:` (ข้อมูลในเครื่อง) และ `data:` เท่านั้น · `'wasm-unsafe-eval'` อนุญาตให้รัน WebAssembly ที่มากับแอป (ตัวเข้ารหัส MP3) ไม่ได้เปิดการเชื่อมต่อใด ๆ และไม่อนุญาต `eval()` (OCR ก็ใช้ WebAssembly ที่มากับแอปเช่นกัน)
+   ไม่มี `connect-src` เบราว์เซอร์จึงใช้ `default-src 'self'` แทน (worker ของ OCR โหลดไฟล์ภาษาจาก `ocr/` ของแอปเองได้เพราะเป็น `'self'`) ผลคือ `fetch`, XHR, WebSocket และ `sendBeacon` ไปยังเซิร์ฟเวอร์อื่น**ถูกเบราว์เซอร์บล็อก** แม้จะมีโค้ดพยายามส่งก็ตาม (รวมถึงไลบรารีภายนอก) และทุกรายการอนุญาตเฉพาะ `'self'`, `blob:` (ข้อมูลในเครื่อง) และ `data:` เท่านั้น · `'wasm-unsafe-eval'` อนุญาตให้รัน WebAssembly ที่มากับแอป (ตัวเข้ารหัส MP3) ไม่ได้เปิดการเชื่อมต่อใด ๆ และไม่อนุญาต `eval()` (OCR และพูดเป็นข้อความก็ใช้ WebAssembly ที่มากับแอปเช่นกัน)
 2. **เทสต์อัตโนมัติ `tests/privacy.test.js`** รันทุกครั้งที่สั่ง `npm test` (หรือ `node --test tests/privacy.test.js`) และจะ fail ถ้ามีการเปลี่ยนโค้ดที่ทำให้ข้อความในหัวข้อนี้ไม่จริง โดยตรวจว่า:
    - CSP ยังอนุญาตเฉพาะแอปเอง ไม่มีโดเมนภายนอก และไม่มีการเพิ่ม `connect-src`
    - โค้ดของแอปไม่มีคำสั่งส่งข้อมูลเครือข่าย (`fetch`, `XMLHttpRequest`, `WebSocket`, `sendBeacon`, `EventSource`, `RTCPeerConnection`) ยกเว้น Service Worker ที่โหลดไฟล์ของแอป (GET เท่านั้น)
@@ -289,6 +326,7 @@ Web เก็บค่าไว้ในเบราว์เซอร์ (local
    - ไลบรารีแปลงวิดีโออ่านจากไฟล์ในเครื่องเท่านั้น (`BlobSource` ไม่ใช่ URL)
    - ตัวเข้ารหัส MP3 มี WebAssembly ฝังอยู่ในไฟล์ (ไม่ดาวน์โหลด) และไม่มีที่อยู่เว็บนอกจากลิงก์สัญญาอนุญาต
    - ไลบรารี OCR (Tesseract.js) ได้ที่อยู่ของ worker / เอนจิน / ไฟล์ภาษาเป็นไฟล์ในโฟลเดอร์ `ocr/` ของแอปเองทั้งหมด (ค่าเริ่มต้นของไลบรารีคือ CDN) และปิดการเก็บแคชลง IndexedDB (`cacheMethod: 'none'`)
+   - พูดเป็นข้อความ (Transformers.js) ปิดการโหลดโมเดลจากเซิร์ฟเวอร์ (`allowRemoteModels = false`) ได้ที่อยู่ของเอนจิน WebAssembly เป็นไฟล์ใน `stt/` ของแอปเอง (ค่าเริ่มต้นของไลบรารีคือ CDN) ปิดแคชของไลบรารี (`useBrowserCache`, `useWasmCache`) โหลดโมเดลได้จาก `stt/models/` ของแอปเองที่เดียว และเก็บใน cache ชื่อ `zcreenshot-stt-…` เท่านั้น
    - ไม่มีที่อยู่เว็บในโค้ด นอกจากลิงก์ GitHub และ Ko-fi ในหน้าแอป
    - ทุกอย่างที่แอปบันทึกลงเครื่องตรงกับตารางด้านบน ถ้ามีการเพิ่มที่เก็บข้อมูลใหม่โดยไม่อัปเดตตาราง เทสต์จะ fail
 3. **ค้นโค้ดเอง**: คำสั่งนี้ควรเจอแค่บรรทัดเดียวใน `sw.js`
@@ -312,10 +350,11 @@ Web เก็บค่าไว้ในเบราว์เซอร์ (local
 | `npm test` | รันเทสต์ (`node --test`) |
 | `npm run test:report` แล้ว `npm run report` | รันเทสต์แล้วสร้าง Allure report เป็นไฟล์เดียว `allure-report/index.html` (ใส่ `ALLURE_NO_ANALYTICS=true` ด้วย เพื่อไม่ให้รายงานมี Google Analytics) |
 | `npm run icon` | สร้างไอคอนใน `build/` |
-| `npm run build:web` | สร้างโฟลเดอร์ `web/` สำหรับ PWA |
+| `npm run build:web` | สร้างโฟลเดอร์ `web/` สำหรับ PWA (รวมโมเดลพูดเป็นข้อความ ไฟล์ใหญ่ถูกตัดเป็นส่วนละ 20 MiB เพราะ Cloudflare Pages รับไฟล์ไม่เกิน 25 MiB) |
 | `npm run serve:web` | เซิร์ฟเวอร์ทดสอบ PWA ที่ `localhost:5173` |
-| `npm run dist:win` | สร้างตัวติดตั้ง Windows (NSIS + Portable) ลง `dist/` |
+| `npm run dist:win` | สร้างตัวติดตั้ง Windows (NSIS + Portable) ลง `dist/` (ดาวน์โหลดโมเดลพูดเป็นข้อความก่อนถ้ายังไม่มี) |
 | `npm run dist:mac` | สร้าง `.dmg` สำหรับ macOS (ต้อง build บนเครื่อง Mac) |
+| `npm run stt:model` | ดาวน์โหลดโมเดล Whisper small (~240 MB) ลง `stt/models/` (ไม่อยู่ใน git) ใช้ตอนรัน `npm start`, `build:web` และตอนสร้างตัวติดตั้ง (CI ดาวน์โหลดเองก่อน deploy) |
 
 **CI** (`.github/workflows/deploy.yml`): ทุก push / pull request รันเทสต์และสร้าง Allure report ดูได้ที่ https://mongoemon.github.io/zscreen/ (ของ `main` ล่าสุด) หรือโหลดไฟล์ `allure-report` จากหน้า run ใน Actions · ถ้าเทสต์ไม่ผ่านจะไม่ deploy และไม่ออก release
 
@@ -336,6 +375,10 @@ mediabunny-mp3-encoder.min.js  ตัวเข้ารหัส MP3 (LAME, ภ�
 ocr-config.js  ค่าที่ใช้ดึงข้อความจากรูป (ไลบรารี ภาษา OEM/PSM การขยายรูป) โค้ดล้วน ทดสอบด้วย node ได้
 ocr.js         ปุ่ม/หน้าต่าง "ดึงข้อความจากรูป" และรายการค่า OCR ในหน้าตั้งค่า
 ocr/           Tesseract.js + เอนจิน WebAssembly + ไฟล์ภาษา eng/tha (ภายนอก โหลดเมื่อใช้ครั้งแรก)
+stt-config.js  ค่าที่ใช้พูดเป็นข้อความ (โมเดล ภาษา ไฟล์ที่ต้องมี) โค้ดล้วน ทดสอบด้วย node ได้
+stt.js         ปุ่ม/หน้าต่าง "พูดเป็นข้อความ": อัดเสียง, เชื่อมต่อโฟลเดอร์โมเดล (Web)
+stt/           worker (stt-worker.js) + Transformers.js + เอนจิน ONNX Runtime WebAssembly (ภายนอก)
+               และ models/ = โมเดล Whisper (ไม่อยู่ใน git: npm run stt:model)
 gif-encoder.js, webm-duration.js, video-options.js   โค้ดล้วน (ทดสอบด้วย node ได้)
 preload.js     สะพานเชื่อม main ↔ renderer (contextIsolation)
 index.html     หน้า UI
@@ -354,7 +397,8 @@ dist/          ผลลัพธ์จาก electron-builder
 ### ความปลอดภัย
 
 - Electron ตั้งค่า `contextIsolation: true`, `nodeIntegration: false`, `sandbox: true`
-- มี Content-Security-Policy จำกัดให้โหลดเฉพาะทรัพยากรจากแหล่งเดียวกัน (ยกเว้น `worker-src` ที่อนุญาต `blob:` เพราะ Mediabunny สร้าง worker ช่วยงานจาก blob URL และ `'wasm-unsafe-eval'` ให้ตัวเข้ารหัส MP3 และเอนจิน OCR รัน WebAssembly ได้)
+- มี Content-Security-Policy จำกัดให้โหลดเฉพาะทรัพยากรจากแหล่งเดียวกัน (ยกเว้น `worker-src` ที่อนุญาต `blob:` เพราะ Mediabunny สร้าง worker ช่วยงานจาก blob URL และ `'wasm-unsafe-eval'` ให้ตัวเข้ารหัส MP3 เอนจิน OCR และเอนจินพูดเป็นข้อความรัน WebAssembly ได้)
+- Desktop เปิด `SharedArrayBuffer` (สวิตช์ `enable-features=SharedArrayBuffer`) และเวอร์ชันเว็บส่ง header `Cross-Origin-Opener-Policy` / `Cross-Origin-Embedder-Policy` (ไฟล์ `web/_headers`) เพื่อให้พูดเป็นข้อความใช้หลายเธรดได้ หน้าแอปโหลดแค่ไฟล์ของตัวเองจึงไม่มีสคริปต์จากเว็บอื่นเข้าถึงหน่วยความจำนี้
 
 ### ไลบรารีภายนอก
 
@@ -366,11 +410,17 @@ dist/          ผลลัพธ์จาก electron-builder
 | `ocr/tesseract-core-simd-lstm.wasm.js` | [tesseract.js-core](https://github.com/naptha/tesseract.js-core) 6.1.2 (Tesseract OCR 5 + Leptonica, libpng, libjpeg, libtiff, libwebp, giflib, zlib, OpenLibm ในรูป WebAssembly SIMD) | Apache-2.0 · ไลบรารีย่อย: BSD / MIT / zlib / IJG / libpng | เอนจิน OCR |
 | `ocr/eng.traineddata.gz` | [tessdata_best_int](https://github.com/naptha/tessdata) 4.0.0 (จาก npm `@tesseract.js-data/eng` 1.0.0) | Apache-2.0 | โมเดลภาษาอังกฤษ |
 | `ocr/tha.traineddata.gz` | [tessdata_best_int](https://github.com/naptha/tessdata) 4.0.0 (จาก npm `@tesseract.js-data/tha` 1.0.0) | Apache-2.0 | โมเดลภาษาไทย |
+| `stt/transformers.min.js` | [Transformers.js](https://github.com/huggingface/transformers.js) 4.3.2 (ไฟล์ `dist/transformers.min.js` จาก npm `@huggingface/transformers` ไม่ได้แก้ไข รวม @huggingface/tokenizers, @huggingface/jinja และส่วน JS ของ ONNX Runtime Web) | Apache-2.0 · jinja / ONNX Runtime: MIT | พูดเป็นข้อความ: รันโมเดล Whisper ใน worker |
+| `stt/ort-wasm-simd-threaded.mjs` | [ONNX Runtime Web](https://github.com/microsoft/onnxruntime) 1.31.0-dev.20260914 (ไฟล์ `dist/` จาก npm `onnxruntime-web` เวอร์ชันที่ Transformers.js 4.3.2 ใช้ ไม่ได้แก้ไข) | MIT | ตัวโหลดเอนจิน |
+| `stt/ort-wasm-simd-threaded.wasm` | [ONNX Runtime Web](https://github.com/microsoft/onnxruntime) 1.31.0-dev.20260914 (WebAssembly SIMD แบบ CPU, 14 MB) | MIT | เอนจินรันโมเดล |
+| `stt/models/` (Desktop เท่านั้น) | [Whisper small](https://github.com/openai/whisper) ของ OpenAI แบบ ONNX 8 บิต ([onnx-community/whisper-small](https://huggingface.co/onnx-community/whisper-small) commit `36050c4`) | MIT | โมเดลแปลงเสียงไทย/อังกฤษเป็นข้อความ |
 | `mediabunny-mp3-encoder.min.js` | [@mediabunny/mp3-encoder](https://mediabunny.dev/guide/extensions/mp3-encoder) 1.61.6 (ไฟล์ `dist/bundles/mediabunny-mp3-encoder.min.js` จาก npm ไม่ได้แก้ไข) มี [LAME MP3 Encoder](https://lame.sourceforge.io/) 3.100 ในรูป WebAssembly | MPL-2.0 · LAME: [LGPL](https://lame.sourceforge.io/license.txt) | เข้ารหัส MP3 ตอนบันทึกเฉพาะเสียง |
 
 อัปเดตเวอร์ชัน: `npm pack mediabunny@<เวอร์ชัน>` แล้วคัดลอก `package/dist/bundles/mediabunny.min.cjs` มาทับเป็น `mediabunny.min.js` และแก้เลขเวอร์ชันในตารางนี้ · ตัวเข้ารหัส MP3 ใช้เวอร์ชันเดียวกัน: `npm pack @mediabunny/mp3-encoder@<เวอร์ชัน>` แล้วคัดลอก `package/dist/bundles/mediabunny-mp3-encoder.min.js`
 
 อัปเดต OCR: `npm pack tesseract.js@<เวอร์ชัน> tesseract.js-core@<เวอร์ชัน> @tesseract.js-data/eng @tesseract.js-data/tha` แล้วคัดลอก `dist/tesseract.min.js`, `dist/worker.min.js`, `tesseract-core-simd-lstm.wasm.js` และ `4.0.0_best_int/*.traineddata.gz` มาไว้ใน `ocr/` จากนั้นแก้เลขเวอร์ชันใน `ocr-config.js`, ตารางนี้ และ `THIRD_PARTY_LICENSES.txt` · เพิ่มภาษา: ใส่ไฟล์ `<lang>.traineddata.gz` ใน `ocr/` แล้วเพิ่มรหัสภาษาใน `LANGUAGES` ของ `ocr-config.js`
+
+อัปเดตพูดเป็นข้อความ: `npm pack @huggingface/transformers@<เวอร์ชัน>` และ `onnxruntime-web@<เวอร์ชันที่ transformers ใช้>` แล้วคัดลอก `dist/transformers.min.js`, `dist/ort-wasm-simd-threaded.mjs` และ `dist/ort-wasm-simd-threaded.wasm` มาไว้ใน `stt/` จากนั้นแก้เลขเวอร์ชันใน `stt-config.js`, ตารางนี้ และ `THIRD_PARTY_LICENSES.txt` · เปลี่ยนโมเดล: แก้ `MODEL` / `MODEL_FILES` ใน `stt-config.js` แล้ว `npm run stt:model` (และแก้ชื่อโมเดลในคำแนะนำของ `i18n.js` กับหัวข้อ *พูดเป็นข้อความ*)
 
 MP3 encoding by [LAME](https://lame.sourceforge.io/) — ขอบคุณโครงการ LAME
 

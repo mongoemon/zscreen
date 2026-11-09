@@ -5,6 +5,9 @@ node_modules/
 dist/
 web/
 
+# speech-to-text model, ~240 MB (`npm run stt:model` downloads it; `npm run dist:*` does it too)
+stt/models/
+
 # test report (`npm run test:report` then `npm run report`)
 allure-results/
 allure-report/

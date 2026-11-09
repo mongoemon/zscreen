@@ -110,6 +110,50 @@ Source:    https://github.com/tesseract-ocr/tessdata_best
 Used for:  the English and Thai text models for "Export text".
 
 
+7. Transformers.js 4.3.2
+-----------------------
+File:      stt/transformers.min.js
+           (dist/transformers.min.js from the npm package "@huggingface/transformers",
+           unmodified)
+Copyright: (c) Hugging Face, Inc. and contributors
+License:   Apache License 2.0 (full text: section C below)
+Source:    https://github.com/huggingface/transformers.js
+           https://www.npmjs.com/package/@huggingface/transformers/v/4.3.2
+Used for:  "Speech to text": running the Whisper model in a worker on this device.
+
+This file also bundles, each under its own license:
+  - @huggingface/tokenizers 0.2.0  (c) Hugging Face, Inc. - Apache License 2.0 (section C)
+  - @huggingface/jinja 0.5.11      (c) Hugging Face, Inc. - MIT (E.1)
+  - the JavaScript part of ONNX Runtime Web (item 8)       - MIT (E.1)
+
+
+8. ONNX Runtime Web 1.31.0-dev.20260914
+---------------------------------------
+Files:     stt/ort-wasm-simd-threaded.mjs, stt/ort-wasm-simd-threaded.wasm
+           (dist/ort-wasm-simd-threaded.mjs and .wasm from the npm package "onnxruntime-web"
+           1.31.0-dev.20260914-8d85527a0, the version Transformers.js 4.3.2 depends on,
+           unmodified; WebAssembly SIMD, CPU only)
+Copyright: (c) Microsoft Corporation
+License:   MIT (full text: section E.1 below)
+Source:    https://github.com/microsoft/onnxruntime
+           https://www.npmjs.com/package/onnxruntime-web
+Used for:  the engine that runs the speech model.
+
+
+9. Whisper small (speech model)
+-------------------------------
+Files:     stt/models/onnx-community/whisper-small/** (desktop app only; users of the web
+           version get the same files themselves and pick their folder)
+           = onnx-community/whisper-small@36050c46d777d46dc4b5f43f6d90574fc38f8732 on Hugging
+           Face (the 8-bit ONNX export of openai/whisper-small, unmodified)
+Copyright: (c) 2022 OpenAI
+License:   MIT (full text: section E.2 below)
+Source:    https://github.com/openai/whisper
+           https://huggingface.co/openai/whisper-small
+           https://huggingface.co/onnx-community/whisper-small
+Used for:  turning Thai and English speech into text.
+
+
 ==========================================================================================
 A. Mozilla Public License 2.0 (Mediabunny, @mediabunny/mp3-encoder)
 ==========================================================================================
@@ -976,7 +1020,8 @@ That's all there is to it!
 
 
 ==========================================================================================
-C. Apache License 2.0 (Tesseract.js, tesseract.js-core, Tesseract OCR, tessdata)
+C. Apache License 2.0 (Tesseract.js, tesseract.js-core, Tesseract OCR, tessdata,
+   Transformers.js, @huggingface/tokenizers)
 ==========================================================================================
 
                                  Apache License
@@ -1733,3 +1778,57 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+
+==========================================================================================
+E. MIT licenses (speech to text)
+==========================================================================================
+
+--- E.1 ONNX Runtime, @huggingface/jinja ---
+
+MIT License
+
+Copyright (c) Microsoft Corporation (ONNX Runtime)
+Copyright (c) 2024 Hugging Face (@huggingface/jinja)
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+
+--- E.2 Whisper ---
+
+MIT License
+
+Copyright (c) 2022 OpenAI
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

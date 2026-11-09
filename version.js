@@ -17,6 +17,20 @@
   /** @type {readonly Release[]} newest first */
   const CHANGELOG = Object.freeze([
     Object.freeze({
+      version: '1.7.0',
+      date: '2026-11-09',
+      changes: Object.freeze({
+        th: Object.freeze([
+          'พูดเป็นข้อความ: อัดเสียงพูดภาษาไทยหรืออังกฤษแล้วแปลงเป็นข้อความด้วย Whisper ในเครื่อง แก้ไข คัดลอก หรือบันทึกเป็น .txt ได้ (Desktop มีโมเดลในตัว เว็บดาวน์โหลดแล้วเชื่อมต่อโฟลเดอร์)',
+          'คลิปบอร์ดข้อความ: เก็บข้อความไว้ใช้ซ้ำได้สูงสุด 10 ข้อความ คลิกเพื่อคัดลอก และส่งข้อความจาก OCR / พูดเป็นข้อความ เข้ามาเก็บได้',
+        ]),
+        en: Object.freeze([
+          'Speech to text: record Thai or English speech and turn it into text with Whisper on your device, then edit, copy or save it as .txt (built into the desktop app; the web version downloads the model and connects the folder)',
+          'Text clipboard: keep up to 10 texts to reuse, click one to copy it, and send text from OCR or speech to text straight into it',
+        ]),
+      }),
+    }),
+    Object.freeze({
       version: '1.6.0',
       date: '2026-11-05',
       changes: Object.freeze({

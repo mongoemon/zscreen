@@ -1,7 +1,10 @@
 // App-shell cache so the installed PWA opens instantly and works offline.
 // Bump CACHE_VERSION whenever the shell files change.
-// The OCR files in ocr/ (~8 MB) are not precached: the fetch handler below caches them on first use.
-const CACHE_VERSION = 'zcreenshot-v22';
+// The OCR files in ocr/ (~8 MB) and the speech-to-text engine in stt/ (~15 MB) are not precached:
+// the fetch handler below caches them on first use. The speech model (stt/models/, ~240 MB) is
+// left alone: the speech worker downloads it on request into its own cache (SttConfig.CACHE_PREFIX),
+// which is kept when CACHE_VERSION changes so an app update does not download it again.
+const CACHE_VERSION = 'zcreenshot-v24';
 const SHELL = [
   './',
   './index.html',
@@ -28,6 +31,10 @@ const SHELL = [
   './region.js',
   './ocr-config.js',
   './ocr.js',
+  './stt-config.js',
+  './stt.js',
+  './text-snippets.js',
+  './snippets-dialog.js',
   './blank-dialog.js',
   './shortcut-settings.js',
   './documents.js',
@@ -61,7 +68,9 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys()
-      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE_VERSION).map((k) => caches.delete(k))))
+      .then((keys) => Promise.all(keys
+        .filter((k) => k !== CACHE_VERSION && !k.startsWith('zcreenshot-stt-'))
+        .map((k) => caches.delete(k))))
       .then(() => self.clients.claim()),
   );
 });
@@ -69,6 +78,7 @@ self.addEventListener('activate', (event) => {
 // Network first (so updates arrive), falling back to the cache when offline.
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
+  if (new URL(event.request.url).pathname.includes('/stt/models/')) return; // the speech worker caches these
   event.respondWith(
     // 'no-cache' revalidates with the server so the browser's HTTP cache cannot serve a stale shell
     fetch(event.request, { cache: 'no-cache' })

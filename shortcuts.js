@@ -43,6 +43,8 @@
     action('copy', 'image', 'image', 'sc.copy', ['Mod+C']),
     action('copyAll', 'image', 'image', 'sc.copyAll', ['Mod+Alt+C']),
     action('exportText', 'image', 'image', 'sc.exportText', ['Mod+Alt+X']),
+    action('speechToText', 'image', 'image', 'sc.speechToText', ['Mod+Alt+D']),
+    action('textClipboard', 'image', 'image', 'sc.textClipboard', ['Mod+Alt+K']),
     action('regionPaste', 'image', 'image', 'sc.regionPaste', ['Enter']),
     action('deleteSelected', 'image', 'image', 'sc.deleteSelected', ['Delete', 'Backspace']),
     action('fit', 'image', 'image', 'sc.fit', ['Mod+0']),

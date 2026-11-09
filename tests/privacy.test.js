@@ -91,6 +91,32 @@ test('no app file contains a web address; the page only has the GitHub and donat
   assert.deepEqual(urls, ['https://github.com/mongoemon/zscreen', 'https://ko-fi.com/mongoemon'], 'only the GitHub and donate links (open on click only)');
 });
 
+test('speech to text runs Whisper from the app\'s own files and keeps the model only in its own cache', () => {
+  const worker = read('stt/stt-worker.js');
+  for (const line of [
+    'env.allowRemoteModels = false;',
+    "env.localModelPath = 'models/';",
+    'env.useBrowserCache = false;',
+    'env.useWasmCache = false;',
+    'env.backends.onnx.wasm.wasmPaths = { mjs: here(Cfg.FILES.runtime), wasm: here(Cfg.FILES.wasm) };', // the default is a CDN
+  ]) assert.ok(worker.includes(line), `stt-worker.js should set ${line}`);
+  assert.ok(worker.includes("const here = (name) => new URL(name, import.meta.url).href;"), 'paths are next to the worker');
+  assert.ok(!/https?:\/\//.test(worker), 'the worker names no server');
+  // the picked folder is served from memory; a missing file is a 404, never a request elsewhere
+  assert.ok(worker.includes("const notFound = () => new Response(null, { status: 404, statusText: 'Not Found' });"));
+  assert.match(worker, /env\.fetch = async \(url\) => \{\s*const file = files\[nameOf\(url\)\];\s*return file \? fileResponse\(file\) : notFound\(\);/);
+  // its one request goes next to the worker (stt/models/ of the app's own site), never elsewhere
+  assert.deepEqual(worker.replace(/env\.fetch\(/g, '').match(/\bfetch\([^)]*\)/g), ['fetch(here(path)'], 'only fetch(here(path)) — the regex stops at the first )');
+  // the downloaded model sits in one named cache (listed in the README), and only there
+  assert.deepEqual(worker.match(/caches\.open\([^)]*\)/g), ['caches.open(Cfg.cacheName()']);
+  assert.ok(!/indexedDB|localStorage|sessionStorage/.test(worker), 'no other storage');
+  assert.ok(privacySection.includes(`${require('../stt-config.js').CACHE_PREFIX}`), 'README privacy section names the model cache');
+  // the service worker leaves the model to that cache and keeps it across app updates
+  const sw = read('sw.js');
+  assert.ok(sw.includes("if (new URL(event.request.url).pathname.includes('/stt/models/')) return;"));
+  assert.ok(sw.includes("!k.startsWith('zcreenshot-stt-')"));
+});
+
 test('everything the app saves is listed in the README privacy section', () => {
   const stored = new Set();
   for (const file of appFiles) {
@@ -106,7 +132,7 @@ test('everything the app saves is listed in the README privacy section', () => {
     assert.ok(!/indexedDB|sessionStorage|document\.cookie/.test(source), `${file} uses other browser storage`);
   }
   assert.deepEqual([...stored].sort(), [
-    'history-panel.json', 'shortcuts.json', 'zcreenshot-history-visible', 'zcreenshot-width', 'zcreenshot.blankPage', 'zcreenshot.locale', 'zcreenshot.shortcuts',
+    'history-panel.json', 'shortcuts.json', 'zcreenshot-history-visible', 'zcreenshot-width', 'zcreenshot.blankPage', 'zcreenshot.locale', 'zcreenshot.shortcuts', 'zcreenshot.snippets',
   ]);
   for (const name of stored) assert.ok(privacySection.includes(name), `README privacy section does not mention ${name}`);
 });

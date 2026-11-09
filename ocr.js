@@ -16,6 +16,7 @@
   const info = $('ocr-info');
   const copyButton = $('ocr-copy');
   const saveButton = $('ocr-save');
+  const keepButton = $('ocr-keep');
 
   /** Tesseract.js logger status -> message shown under the progress bar. */
   const STATUS = Object.freeze({
@@ -111,6 +112,7 @@
     textBox.hidden = busy;
     copyButton.disabled = busy;
     saveButton.disabled = busy;
+    keepButton.disabled = busy;
   }
 
   async function exportText() {
@@ -191,6 +193,7 @@
   $('btn-ocr').addEventListener('click', exportText);
   copyButton.addEventListener('click', copyText);
   saveButton.addEventListener('click', saveText);
+  keepButton.addEventListener('click', () => App.keepSnippet(textBox.value));
 
   // ---------- settings: what is used, read-only ----------
   function renderSettings() {

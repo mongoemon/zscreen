@@ -30,6 +30,8 @@
     copy: () => (S.region ? App.copyRegion() : App.copyImage()),
     copyAll: () => App.copyAll(),
     exportText: () => App.exportText(),
+    speechToText: () => App.openSpeechToText(),
+    textClipboard: () => App.openSnippets(),
     regionPaste: () => App.pasteRegion(),
     deleteSelected: () => App.deleteSelected(),
     fit: () => { App.fitView(); App.render(); },

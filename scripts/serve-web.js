@@ -9,6 +9,9 @@ const TYPES = {
   '.html': 'text/html; charset=utf-8',
   '.css': 'text/css; charset=utf-8',
   '.js': 'text/javascript; charset=utf-8',
+  '.mjs': 'text/javascript; charset=utf-8',
+  '.wasm': 'application/wasm',
+  '.json': 'application/json',
   '.webmanifest': 'application/manifest+json',
   '.png': 'image/png',
   '.txt': 'text/plain; charset=utf-8',
@@ -35,7 +38,12 @@ http.createServer((req, res) => {
       res.writeHead(404).end('Not found');
       return;
     }
-    res.writeHead(200, { 'Content-Type': TYPES[path.extname(file)] || 'application/octet-stream' });
+    res.writeHead(200, {
+      'Content-Type': TYPES[path.extname(file)] || 'application/octet-stream',
+      // same as web/_headers on Cloudflare: cross-origin isolated, so speech to text gets threads
+      'Cross-Origin-Opener-Policy': 'same-origin',
+      'Cross-Origin-Embedder-Policy': 'require-corp',
+    });
     res.end(data);
   });
 }).listen(PORT, '127.0.0.1', () => {

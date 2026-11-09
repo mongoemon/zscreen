@@ -43,6 +43,8 @@
     <symbol id="i-rotate" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></symbol>
     <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14"/><path d="M5 12h14"/></symbol>
     <symbol id="i-scan-text" viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 8h8"/><path d="M7 12h10"/><path d="M7 16h6"/></symbol>
+    <symbol id="i-speech-text" viewBox="0 0 24 24"><rect x="3" y="2" width="6" height="11" rx="3"/><path d="M1.5 10a4.5 4.5 0 0 0 9 0"/><path d="M6 14.5V19"/><path d="M14 7h7"/><path d="M14 12h7"/><path d="M14 17h4"/></symbol>
+    <symbol id="i-clipboard-text" viewBox="0 0 24 24"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M8 11h8"/><path d="M8 15h8"/><path d="M8 19h5"/></symbol>
     <symbol id="i-close"viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol>
 
     <symbol id="i-select" viewBox="0 0 24 24"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></symbol>
@@ -89,6 +91,8 @@
     <a id="btn-donate" class="icon-btn" href="https://ko-fi.com/mongoemon" target="_blank" rel="noopener noreferrer" data-i18n-title="btn.donate" hidden><svg class="icon"><use href="#i-heart"/></svg></a>
     <span id="zoom-label" class="zoom">100%</span>
     <button id="btn-ocr" data-shortcut="exportText" class="icon-btn" data-i18n-title="btn.ocr" aria-haspopup="dialog"><svg class="icon"><use href="#i-scan-text"/></svg></button>
+    <button id="btn-stt" data-shortcut="speechToText" class="icon-btn" data-i18n-title="btn.stt" aria-haspopup="dialog"><svg class="icon"><use href="#i-speech-text"/></svg></button>
+    <button id="btn-snippets" data-shortcut="textClipboard" class="icon-btn" data-i18n-title="btn.snippets" aria-haspopup="dialog"><svg class="icon"><use href="#i-clipboard-text"/></svg></button>
     <button id="btn-copy" data-shortcut="copy" class="icon-btn" data-i18n-title="btn.copy"><svg class="icon"><use href="#i-copy"/></svg></button>
     <button id="btn-copy-all" data-shortcut="copyAll" class="icon-btn" data-i18n-title="btn.copyAll"><svg class="icon"><use href="#i-copy-all"/></svg></button>
     <button id="btn-save" data-shortcut="save" class="icon-btn primary" data-i18n-title="btn.save"><svg class="icon"><use href="#i-download"/></svg></button>
@@ -305,8 +309,84 @@
       </div>
       <div class="modal-foot">
         <button id="ocr-save" class="text-btn" data-i18n="ocr.saveTxt" disabled></button>
+        <button id="ocr-keep" class="text-btn" data-i18n="snippets.keep" disabled></button>
         <span class="spacer"></span>
         <button id="ocr-copy" class="primary" data-i18n-title="ocr.copyTitle" disabled><svg class="icon"><use href="#i-copy"/></svg> <span data-i18n="ocr.copy"></span></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Speech to text: record the microphone, Whisper turns it into text to copy or save (stt.js).
+       Web, first use: an offer to download the model once. The folder setup shows only when a
+       build has no model at all. -->
+  <div id="stt-dialog" class="modal" role="dialog" aria-modal="true" aria-labelledby="stt-title" hidden>
+    <div class="modal-card">
+      <div class="modal-head">
+        <h2 id="stt-title" data-i18n="stt.title"></h2>
+        <button id="stt-close" class="icon-btn" data-i18n-title="dialog.close"><svg class="icon"><use href="#i-close"/></svg></button>
+      </div>
+      <div class="modal-body">
+        <section id="stt-get" class="stt-setup" hidden>
+          <h3 data-i18n="stt.getTitle"></h3>
+          <p class="note" data-i18n="stt.getIntro"></p>
+          <p class="stt-get-row"><button id="stt-get-start" class="primary" data-i18n-title="stt.getStartTitle"><svg class="icon"><use href="#i-download"/></svg> <span data-i18n="stt.getStart"></span></button> <span id="stt-get-size" class="muted"></span></p>
+        </section>
+        <section id="stt-setup" class="stt-setup" hidden>
+          <h3 data-i18n="stt.setupTitle"></h3>
+          <p class="note" data-i18n="stt.setupIntro"></p>
+          <ol class="stt-steps">
+            <li><span data-i18n="stt.step1"></span><ul id="stt-files" class="stt-files"></ul></li>
+            <li><span data-i18n="stt.step2"></span> <button id="stt-connect" class="text-btn" data-i18n="stt.connect"></button></li>
+            <li data-i18n="stt.step3"></li>
+          </ol>
+          <input type="file" id="stt-folder" webkitdirectory multiple hidden />
+          <p id="stt-setup-error" class="note warn" hidden></p>
+        </section>
+        <div class="form-row">
+          <label class="field"><span data-i18n="stt.language"></span><select id="stt-lang"></select></label>
+          <button id="stt-record" class="primary stt-record" data-i18n-title="stt.recordTitle" disabled><svg class="icon"><use href="#i-mic"/></svg> <span></span></button>
+          <span id="stt-time" class="rec-time" hidden>0:00</span>
+          <meter id="stt-level" class="stt-level" min="0" max="1" value="0" data-i18n-aria="stt.level" hidden></meter>
+        </div>
+        <div id="stt-progress-row" class="progress-row" hidden>
+          <progress id="stt-progress" max="1"></progress>
+          <span id="stt-status" class="muted"></span>
+        </div>
+        <textarea id="stt-text" class="ocr-text" spellcheck="false" data-i18n-aria="stt.textLabel"></textarea>
+        <p id="stt-info" class="note"></p>
+      </div>
+      <div class="modal-foot">
+        <button id="stt-clear" class="text-btn" data-i18n="stt.clear" disabled></button>
+        <button id="stt-save" class="text-btn" data-i18n="ocr.saveTxt" disabled></button>
+        <button id="stt-keep" class="text-btn" data-i18n="snippets.keep" disabled></button>
+        <span class="spacer"></span>
+        <button id="stt-copy" class="primary" data-i18n-title="ocr.copyTitle" disabled><svg class="icon"><use href="#i-copy"/></svg> <span data-i18n="ocr.copy"></span></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Text clipboard: up to 10 texts kept to reuse later, click one to copy it (snippets-dialog.js). -->
+  <div id="snippets-dialog" class="modal" role="dialog" aria-modal="true" aria-labelledby="snippets-title" hidden>
+    <div class="modal-card">
+      <div class="modal-head">
+        <h2 id="snippets-title" data-i18n="snippets.title"></h2>
+        <span id="snippets-count" class="muted"></span>
+        <button id="snippets-close" class="icon-btn" data-i18n-title="dialog.close"><svg class="icon"><use href="#i-close"/></svg></button>
+      </div>
+      <div class="modal-body">
+        <textarea id="snippet-input" class="snippet-input" spellcheck="false" data-i18n-aria="snippets.inputLabel"></textarea>
+        <div class="snippet-add-row">
+          <p class="note" data-i18n="snippets.hint"></p>
+          <button id="snippet-add" class="primary" data-i18n-title="snippets.addTitle"><svg class="icon"><use href="#i-plus"/></svg> <span data-i18n="snippets.add"></span></button>
+        </div>
+        <p id="snippet-full" class="note warn" hidden></p>
+        <ul id="snippet-list" class="snippet-list" data-i18n-aria="snippets.listLabel"></ul>
+        <p id="snippet-empty" class="snippet-empty" data-i18n="snippets.empty" hidden></p>
+      </div>
+      <div class="modal-foot">
+        <button id="snippets-clear" class="text-btn" data-i18n="snippets.clear" disabled></button>
+        <span class="spacer"></span>
+        <span class="muted" data-i18n="snippets.stored"></span>
       </div>
     </div>
   </div>
@@ -359,6 +439,10 @@
   <script src="region.js"></script>
   <script src="ocr-config.js"></script>
   <script src="ocr.js"></script>
+  <script src="stt-config.js"></script>
+  <script src="stt.js"></script>
+  <script src="text-snippets.js"></script>
+  <script src="snippets-dialog.js"></script>
   <script src="blank-dialog.js"></script>
   <script src="shortcut-settings.js"></script>
   <script src="documents.js"></script>

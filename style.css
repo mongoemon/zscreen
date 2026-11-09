@@ -424,6 +424,46 @@ button.version {
   background: var(--bg); border: 1px solid var(--line); border-radius: 6px; user-select: text;
 }
 .ocr-text:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+
+/* Text clipboard: a box to type into, then the saved texts (click one to copy it) */
+.snippet-input {
+  width: 100%; min-height: 72px; height: 88px; resize: vertical; padding: 8px 10px;
+  font: inherit; font-size: 14px; line-height: 1.5; color: var(--text);
+  background: var(--bg); border: 1px solid var(--line); border-radius: 6px;
+}
+.snippet-input:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+.snippet-add-row { display: flex; align-items: center; gap: 10px; }
+.snippet-add-row .note { flex: 1; }
+.snippet-add-row button { display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.snippet-list { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 6px; }
+.snippet-item { display: flex; align-items: flex-start; gap: 6px; }
+.snippet-pick {
+  flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; padding: 8px 10px; text-align: left;
+  font: inherit; color: var(--text); background: var(--bg); border: 1px solid var(--line); border-radius: 6px; cursor: copy;
+}
+.snippet-pick:hover { border-color: var(--accent); }
+.snippet-pick:focus-visible, .snippet-remove:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.snippet-text {
+  font-size: 13px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere;
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+}
+.snippet-time { font-size: 11px; color: var(--muted); }
+.snippet-remove:hover { color: #fff; background: #c0392b; }
+.snippet-empty { margin: 0; padding: 16px; text-align: center; color: var(--muted); font-size: 13px; }
+.snippet-empty[hidden] { display: none; }
+
+/* Speech to text: the web version's model setup, the record button and the microphone meter */
+.stt-setup { display: flex; flex-direction: column; gap: 8px; padding: 10px 12px; border: 1px dashed var(--line); border-radius: 8px; }
+.stt-setup h3 { margin: 0; font-size: 14px; }
+.stt-steps { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; font-size: 13px; line-height: 1.5; }
+.stt-steps .text-btn { margin-left: 4px; }
+.stt-get-row { display: flex; align-items: center; gap: 10px; margin: 0; font-size: 13px; }
+.stt-get-row .primary { display: inline-flex; align-items: center; gap: 6px; }
+.stt-files { margin: 4px 0 0; padding-left: 18px; font-size: 12px; color: var(--muted); }
+.stt-files code { user-select: text; }
+.stt-record { display: inline-flex; align-items: center; gap: 6px; }
+.stt-record.recording { background: #ff3b30; border-color: #ff3b30; }
+.stt-level { width: 120px; height: 8px; }
 @media (max-width: 640px) {
   .sc-row { grid-template-columns: 1fr; }
   .sc-keys { justify-content: flex-start; }
