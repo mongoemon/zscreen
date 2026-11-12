@@ -17,6 +17,18 @@
   /** @type {readonly Release[]} newest first */
   const CHANGELOG = Object.freeze([
     Object.freeze({
+      version: '1.8.1',
+      date: '2026-11-12',
+      changes: Object.freeze({
+        th: Object.freeze([
+          'ปรับปรุงภายในโปรเจกต์ ไม่มีการเปลี่ยนแปลงที่มองเห็นได้',
+        ]),
+        en: Object.freeze([
+          'Internal housekeeping, no visible changes',
+        ]),
+      }),
+    }),
+    Object.freeze({
       version: '1.8.0',
       date: '2026-11-12',
       changes: Object.freeze({
