@@ -13,6 +13,11 @@
   const OUTLINE_RATIO = 0.35; // shape outline: extra width on each side, relative to the line width
   const MIN_OUTLINE = 1.5; // ... but never thinner than this (world px)
 
+  const LABEL_FIT = 0.85; // share of the box the text may fill
+  const LABEL_REF_SIZE = 100; // text is measured at this size, then scaled to fit
+  const LABEL_MIN_SIZE = 8; // world px
+  const LABEL_MAX_SIZE = 120; // world px
+
   const scratch = document.createElement('canvas'); // reused for measuring and censor sampling
   const scratchCtx = scratch.getContext('2d');
 
@@ -155,6 +160,40 @@
     });
   }
 
+  /**
+   * Font size for the text inside a box: the largest that fits the box (the square inscribed in an
+   * ellipse), so the text grows and shrinks with the box and shrinks as more is typed.
+   */
+  function shapeLabelSize(a, label) {
+    const inner = a.type === 'ellipse' ? Math.SQRT1_2 : 1;
+    const availW = Math.max(0, (a.w - a.width * 2) * inner * LABEL_FIT);
+    const availH = Math.max(0, (a.h - a.width * 2) * inner * LABEL_FIT);
+    const { w, h } = measureLines(label || ' ', LABEL_REF_SIZE, 0);
+    const fit = Math.min(availW / w, availH / h) * LABEL_REF_SIZE;
+    return Math.min(LABEL_MAX_SIZE, Math.max(LABEL_MIN_SIZE, fit));
+  }
+
+  /** Text centred in a box (rect / ellipse); a filled box gets the contrasting text colour. */
+  function drawShapeLabel(ctx, a) {
+    if (!a.label) return;
+    const size = shapeLabelSize(a, a.label);
+    const lines = a.label.split('\n');
+    const color = a.fill ? root.Scene.contrastColor(a.color) : a.color;
+    const top = a.y + a.h / 2 - (lines.length * size * LINE_HEIGHT) / 2;
+    ctx.font = fontOf(size);
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'alphabetic';
+    // Centre the font's own ascent+descent in each line box, as CSS does, so the canvas text sits where the editor shows it
+    // (a 'top' baseline ignores the line gap and Thai fonts' tall ascent, which pushed the text below the middle).
+    const m = ctx.measureText('M');
+    const ascent = m.fontBoundingBoxAscent ?? size * 0.9;
+    const descent = m.fontBoundingBoxDescent ?? size * 0.25;
+    const baselineOffset = (size * LINE_HEIGHT + ascent - descent) / 2;
+    lines.forEach((line, i) => {
+      fillTextLine(ctx, line, a.x + a.w / 2, top + i * size * LINE_HEIGHT + baselineOffset, size, color, a.stroke && !a.fill);
+    });
+  }
+
   function drawText(ctx, a) {
     const lines = a.text.split('\n');
     const pad = a.bg ? TEXT_PAD : 0;
@@ -224,6 +263,7 @@
         }
         strokeOutline(ctx, a, () => ctx.strokeRect(a.x, a.y, a.w, a.h));
         ctx.strokeRect(a.x, a.y, a.w, a.h);
+        drawShapeLabel(ctx, a);
         break;
       case 'ellipse': {
         const path = () => {
@@ -237,6 +277,7 @@
         }
         strokeOutline(ctx, a, () => ctx.stroke());
         ctx.stroke();
+        drawShapeLabel(ctx, a);
         break;
       }
       case 'highlight':
@@ -269,6 +310,6 @@
   }
 
   root.Draw = {
-    drawAnnotations, measureText, measureArrowLabel, TEXT_PAD, fontOf, outlineWidth,
+    drawAnnotations, measureText, measureArrowLabel, shapeLabelSize, TEXT_PAD, fontOf, outlineWidth,
   };
 })(window);

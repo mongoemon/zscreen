@@ -243,3 +243,35 @@ describe('history', () => {
     assert.equal(S.undoHistory([]), null);
   });
 });
+
+describe('box text (canLabelShape / shapeContains)', () => {
+  const rect = { type: 'rect', x: 0, y: 0, w: 100, h: 50, width: 3, fill: false };
+  const ellipse = { type: 'ellipse', x: 0, y: 0, w: 100, h: 50, width: 3, fill: false };
+
+  test('only rect and ellipse can carry text', () => {
+    assert.equal(S.canLabelShape(rect), true);
+    assert.equal(S.canLabelShape(ellipse), true);
+    assert.equal(S.canLabelShape({ type: 'censor' }), false);
+    assert.equal(S.canLabelShape({ type: 'arrow' }), false);
+  });
+
+  test('a hollow rect contains its interior, not just the outline', () => {
+    assert.equal(S.shapeContains(rect, { x: 50, y: 25 }), true);
+    assert.equal(S.shapeContains(rect, { x: 150, y: 25 }), false);
+  });
+
+  test('an ellipse does not contain its bounding-box corner', () => {
+    assert.equal(S.shapeContains(ellipse, { x: 50, y: 25 }), true);
+    assert.equal(S.shapeContains(ellipse, { x: 2, y: 2 }), false);
+  });
+
+  test('a zero-size ellipse contains nothing', () => {
+    assert.equal(S.shapeContains({ ...ellipse, w: 0 }, { x: 0, y: 25 }), false);
+  });
+
+  test('moving a labelled box keeps its text', () => {
+    const moved = S.translateAnnotation({ ...rect, label: 'hi' }, 10, 5);
+    assert.equal(moved.label, 'hi');
+    assert.equal(moved.x, 10);
+  });
+});

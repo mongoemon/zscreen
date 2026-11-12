@@ -338,15 +338,25 @@
   canvas.addEventListener('dblclick', (e) => {
     if (S.tool !== 'select') return;
     const { x, y } = pointerPos(e);
-    const hit = hitAnnotationAt(Scene.toWorld(S.view, x, y));
-    if (hit && (hit.type === 'text' || hit.type === 'arrow')) App.openTextEditor(hit);
+    const w = Scene.toWorld(S.view, x, y);
+    const hit = hitAnnotationAt(w);
+    if (hit && (hit.type === 'text' || hit.type === 'arrow')) {
+      App.openTextEditor(hit);
+      return;
+    }
+    // a hollow box is only "hit" on its outline, but double-clicking anywhere inside it adds/edits its text
+    const box = hit && Scene.canLabelShape(hit) ? hit : [...S.annotations].reverse().find((a) => Scene.shapeContains(a, w));
+    if (box) App.openTextEditor(box);
   });
 
+  const WHEEL_ZOOM_STEP = 1.1;
   canvas.addEventListener('wheel', (e) => {
     e.preventDefault();
     const { x: sx, y: sy } = pointerPos(e);
     if (e.ctrlKey || e.metaKey) {
-      App.zoomAt(sx, sy, Math.exp(-e.deltaY * 0.01));
+      // One wheel notch (deltaY 100) = 10%; smaller trackpad deltas scale proportionally.
+      const notches = Math.max(-1, Math.min(1, e.deltaY / 100));
+      App.zoomAt(sx, sy, Math.pow(WHEEL_ZOOM_STEP, -notches));
     } else {
       S.view = { ...S.view, x: S.view.x - e.deltaX, y: S.view.y - e.deltaY };
       if (S.editing) App.positionEditor();

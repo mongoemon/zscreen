@@ -161,10 +161,11 @@
       ctx.drawImage(it.bitmap, it.x, it.y, it.w, it.h);
     }
 
-    // the annotation being edited is hidden (the textarea shows it); an arrow keeps its shaft and head
+    // the annotation being edited is hidden (the textarea shows it); an arrow or a box keeps its
+    // shape and only loses its text, which the textarea shows instead
     const visible = S.annotations.flatMap((a) => {
       if (!S.editing || S.editing.id !== a.id) return [a];
-      return a.type === 'arrow' ? [{ ...a, label: '' }] : [];
+      return a.type === 'arrow' || Scene.canLabelShape(a) ? [{ ...a, label: '' }] : [];
     });
     Draw.drawAnnotations(ctx, S.draft ? [...visible, S.draft] : visible, {
       items: S.items,

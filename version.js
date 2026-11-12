@@ -17,6 +17,20 @@
   /** @type {readonly Release[]} newest first */
   const CHANGELOG = Object.freeze([
     Object.freeze({
+      version: '1.8.0',
+      date: '2026-11-12',
+      changes: Object.freeze({
+        th: Object.freeze([
+          'ใส่ข้อความตรงกลางกล่องสี่เหลี่ยม/วงรี: ดับเบิลคลิกที่กล่อง ขนาดตัวอักษรปรับตามกล่อง',
+          'ปรับการซูม: ปุ่มซูมเข้า/ออกขยับทีละ 25% และล้อเมาส์ซูมทีละ 10% ต่อหนึ่งคลิก',
+        ]),
+        en: Object.freeze([
+          'Text inside rectangles / ellipses: double-click a box to type in its centre; the font size follows the box',
+          'Zoom tuning: the zoom buttons step by 25% and one mouse-wheel notch zooms by 10%',
+        ]),
+      }),
+    }),
+    Object.freeze({
       version: '1.7.2',
       date: '2026-11-10',
       changes: Object.freeze({

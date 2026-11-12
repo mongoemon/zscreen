@@ -173,7 +173,7 @@
   // Annotation shapes (all in world coordinates, each has `id` and `ownerId` = image it sits on, or null):
   //   pen {points[], color, width}        line/arrow {x1,y1,x2,y2, color, width}
   //   arrow also: label?, labelW, labelH  (text behind the tail, see arrowLabelRect)
-  //   rect/ellipse {x,y,w,h, color, width, fill?}  highlight {x,y,w,h, color}   censor {x,y,w,h, mode}
+  //   rect/ellipse {x,y,w,h, color, width, fill?, label?}  highlight {x,y,w,h, color}   censor {x,y,w,h, mode}
   //   text {x,y,w,h, text, size, color, bg}  step {x,y, n, size(radius), color}
   const RECT_TYPES = new Set(['rect', 'ellipse', 'highlight', 'censor']);
   const isRectLike = (a) => RECT_TYPES.has(a.type);
@@ -222,6 +222,19 @@
   }
 
   const inRect = (p, x, y, w, h) => p.x >= x && p.x <= x + w && p.y >= y && p.y <= y + h;
+
+  // A box (rect / ellipse) may carry centred text: `label` (string); its font size follows the box (draw.js).
+  const canLabelShape = (a) => a.type === 'rect' || a.type === 'ellipse';
+
+  /** True when the world point is anywhere inside a box, outline or interior (unlike annotationHit, which skips a hollow interior). */
+  function shapeContains(a, p) {
+    if (!canLabelShape(a)) return false;
+    if (a.type === 'rect') return inRect(p, a.x, a.y, a.w, a.h);
+    const rx = a.w / 2;
+    const ry = a.h / 2;
+    if (rx === 0 || ry === 0) return false;
+    return Math.hypot((p.x - (a.x + rx)) / rx, (p.y - (a.y + ry)) / ry) <= 1;
+  }
 
   function normalizeRect(x1, y1, x2, y2) {
     return { x: Math.min(x1, x2), y: Math.min(y1, y2), w: Math.abs(x2 - x1), h: Math.abs(y2 - y1) };
@@ -532,6 +545,8 @@
     arrowLabelSize,
     arrowLabelAlign,
     arrowLabelRect,
+    canLabelShape,
+    shapeContains,
     nextStepNumber,
     contrastColor,
     clamp,

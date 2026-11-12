@@ -1,14 +1,14 @@
 'use strict';
 
 // In-place text editing: a <textarea> overlaid on the canvas at the annotation's screen position.
-// Edits two kinds of annotation: free text boxes ("text") and the label behind an arrow's tail
-// ("arrow"). Enter commits, Shift+Enter adds a line, Esc cancels, losing focus commits.
+// Edits three kinds of annotation: free text boxes ("text"), the label behind an arrow's tail
+// ("arrow") and the text centred in a rect / ellipse. Enter commits, Shift+Enter adds a line, Esc cancels, losing focus commits.
 (() => {
   const { dom, state: S, pushHistory } = App;
   const { textEditor } = dom;
 
   const isArrow = (a) => a.type === 'arrow';
-  const textOf = (a) => (isArrow(a) ? a.label || '' : a.text);
+  const textOf = (a) => (isArrow(a) || Scene.canLabelShape(a) ? a.label || '' : a.text);
 
   function fitEditor(minWidth = 60) {
     textEditor.style.width = '1px';
@@ -47,11 +47,48 @@
     textEditor.style.top = `${cy - textEditor.offsetHeight / 2}px`;
   }
 
+  /**
+   * Box label: the textarea only supplies the caret and the keyboard; its text is transparent because the label is
+   * drawn live on the canvas (see previewShapeLabel). Typing and the committed result then use one renderer and
+   * cannot sit at different heights.
+   */
+  function positionShapeEditor(a, view) {
+    const fontPx = a.labelSize * view.scale;
+    textEditor.style.font = Draw.fontOf(fontPx);
+    setOutline(false, a.color, fontPx);
+    textEditor.style.lineHeight = '1.3';
+    textEditor.style.padding = '0px';
+    textEditor.style.textAlign = 'center';
+    textEditor.style.color = 'transparent';
+    textEditor.style.caretColor = a.fill ? Scene.contrastColor(a.color) : a.color;
+    textEditor.style.background = 'transparent';
+    fitEditor(8);
+    const cx = (a.x + a.w / 2) * view.scale + view.x;
+    const cy = (a.y + a.h / 2) * view.scale + view.y;
+    textEditor.style.left = `${cx - textEditor.offsetWidth / 2}px`;
+    textEditor.style.top = `${cy - textEditor.offsetHeight / 2}px`;
+  }
+
+  /** Draw the text being typed into a box straight onto the canvas (no history step; commit or cancel settles it). */
+  function previewShapeLabel(a, value) {
+    S.annotations = S.annotations.map((x) => (x.id === a.id ? { ...x, label: value } : x));
+    App.render();
+  }
+
+  /** Put the box's original label back (editing started from it), before the edit is committed or dropped. */
+  function restoreShapeLabel(a) {
+    S.annotations = S.annotations.map((x) => (x.id === a.id ? { ...x, label: a.label } : x));
+  }
+
   function positionEditor() {
     const a = S.editing;
     const view = S.view;
     if (isArrow(a)) {
       positionArrowEditor(a, view);
+      return;
+    }
+    if (Scene.canLabelShape(a)) {
+      positionShapeEditor(a, view);
       return;
     }
     textEditor.style.font = Draw.fontOf(a.size * view.scale);
@@ -80,7 +117,9 @@
   }
 
   function cancelText() {
+    if (S.editing && Scene.canLabelShape(S.editing)) restoreShapeLabel(S.editing);
     S.editing = null;
+    textEditor.style.caretColor = '';
     textEditor.hidden = true;
   }
 
@@ -91,6 +130,16 @@
     // a just-drawn arrow already has its undo step; typing its label must not add a second one
     if (!a.fresh) pushHistory();
     const next = { ...current, label, ...Draw.measureArrowLabel({ ...current, label }) };
+    S.annotations = S.annotations.map((x) => (x.id === a.id ? next : x));
+    App.selectAnnotation(next);
+  }
+
+  function commitShapeLabel(a, value) {
+    const current = S.annotations.find((x) => x.id === a.id);
+    const label = value.replace(/\s+$/, '');
+    if (!current || label === (current.label || '')) return;
+    pushHistory();
+    const next = { ...current, label }; // the font size follows the box (see Draw.shapeLabelSize)
     S.annotations = S.annotations.map((x) => (x.id === a.id ? next : x));
     App.selectAnnotation(next);
   }
@@ -121,11 +170,16 @@
     const value = textEditor.value;
     cancelText();
     if (isArrow(a)) commitArrowLabel(a, value);
+    else if (Scene.canLabelShape(a)) commitShapeLabel(a, value);
     else commitTextBox(a, value);
     App.render();
   }
 
-  textEditor.addEventListener('input', () => { if (S.editing) positionEditor(); });
+  textEditor.addEventListener('input', () => {
+    if (!S.editing) return;
+    if (Scene.canLabelShape(S.editing)) previewShapeLabel(S.editing, textEditor.value);
+    positionEditor();
+  });
   textEditor.addEventListener('blur', commitText);
   textEditor.addEventListener('keydown', (e) => {
     if (e.isComposing) return; // Enter that confirms an IME candidate must not commit the text

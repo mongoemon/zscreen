@@ -4,7 +4,7 @@
 // the fetch handler below caches them on first use. The speech model (stt/models/, ~240 MB) is
 // never cached here. Activating a new version deletes every other cache, including the model cache
 // (zcreenshot-stt-…) that v1.7.0 downloaded into.
-const CACHE_VERSION = 'zcreenshot-v25';
+const CACHE_VERSION = 'zcreenshot-v26';
 const SHELL = [
   './',
   './index.html',
