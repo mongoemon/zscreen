@@ -25,3 +25,7 @@ Thumbs.db
 # local env
 .env
 .env.*
+
+# stray files
+*.stackdump
+.m3/
